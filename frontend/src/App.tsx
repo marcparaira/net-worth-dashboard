@@ -1,6 +1,7 @@
 import { SegmentedControl } from './components/common';
 import { useHashPage } from './hooks/useHashPage';
 import type { Option } from './lib/constants';
+import { APP_VERSION, versionLabel } from './lib/version';
 import { DashboardPage } from './pages/DashboardPage';
 import { RebalancingPage } from './pages/RebalancingPage';
 
@@ -20,6 +21,7 @@ export function App() {
         <SegmentedControl options={PAGES} value={page} onChange={setPage} />
       </nav>
       {page === 'rebalancing' ? <RebalancingPage /> : <DashboardPage />}
+      <footer className="app-footer">Net Worth Dashboard · {versionLabel(APP_VERSION)}</footer>
     </main>
   );
 }

@@ -129,6 +129,12 @@ sudo apt install pre-commit   # or: pipx install pre-commit
 pre-commit install
 ```
 
+## Contributing and releases
+
+Work happens on short-lived branches merged into `main` through pull requests with
+Conventional Commit titles; every merge publishes a versioned release. See
+[CONTRIBUTING.md](CONTRIBUTING.md).
+
 ## Code layout
 
 - `compose.yaml`: local environment (web, API, PostgreSQL)

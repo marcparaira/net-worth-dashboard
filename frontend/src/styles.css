@@ -463,6 +463,13 @@ body {
 }
 
 /* Page navigation */
+.app-footer {
+  margin-top: 40px;
+  color: #8290aa;
+  font-size: 12px;
+  text-align: center;
+}
+
 .page-nav {
   display: flex;
   justify-content: flex-end;

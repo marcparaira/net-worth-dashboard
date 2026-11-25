@@ -7,6 +7,11 @@ from typing import TypedDict
 from .config import RateBasis
 
 
+class Health(TypedDict):
+    status: str
+    version: str
+
+
 class Meta(TypedDict):
     latest_date: str
     excluded_category: str

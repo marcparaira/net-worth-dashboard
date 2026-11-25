@@ -34,8 +34,8 @@ evaluations. System architecture is documented separately.
 | Linting and Formatting | Ruff, basedpyright, ESLint (typescript-eslint), Prettier | Selected |
 | Secret Scanning | gitleaks | Selected |
 | CI | GitHub Actions | Selected |
-| Release Automation | semantic-release (or release-please), Conventional Commits | Proposed |
-| Container Registry | GitHub Container Registry | Proposed |
+| Release Automation | semantic-release, Conventional Commit pull request titles | Selected |
+| Container Registry | GitHub Container Registry | Selected |
 | Containerization | Podman, Podman Compose | Selected |
 | Cloud Provider | Amazon Web Services (AWS) | Selected |
 | Infrastructure as Code | AWS CDK (TypeScript) | Proposed |

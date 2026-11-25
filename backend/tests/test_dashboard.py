@@ -6,8 +6,8 @@ from pathlib import Path
 from fastapi.routing import APIRoute
 from pydantic import ValidationError
 
-from backend.app import app
-from backend.config import SAMPLE_DATA_DIR
+from backend.app import app, health
+from backend.config import APP_VERSION, SAMPLE_DATA_DIR
 from backend.dashboard import build_dashboard
 from backend.ledger import process_records
 from backend.models import Record
@@ -254,6 +254,10 @@ class SampleDataTests(unittest.TestCase):
     def test_api_routes(self):
         paths = {route.path for route in app.routes if isinstance(route, APIRoute)}
         self.assertEqual(paths, {'/api/dashboard', '/api/rebalancing', '/api/health'})
+
+    def test_health_reports_the_version(self):
+        self.assertEqual(health(), {'status': 'ok', 'version': APP_VERSION})
+        self.assertEqual(app.version, APP_VERSION)
 
 
 if __name__ == '__main__':
