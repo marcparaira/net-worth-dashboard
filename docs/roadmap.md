@@ -51,13 +51,13 @@ Every pull request merged into `main` produces a versioned release.
 
 The current styling looks generic. Define a design system before new pages are built on it.
 
-- [ ] Define design tokens as CSS custom properties: a colour palette (neutrals, one accent, and semantic colours for gains, losses, and warnings), typography scale, spacing, radii, and shadows.
-- [ ] Choose a colour-blind-safe chart palette, with one consistent colour per category across all charts.
-- [ ] Support light and dark themes, following the system setting.
-- [ ] Restyle the Dashboard and Rebalancing pages with the tokens: calm surfaces, clear hierarchy, and fewer decorative effects (gradients, glows, coloured edge bars, uppercase labels).
-- [ ] Present numbers consistently: tabular figures, right-aligned amounts, and one convention for signs and colours of changes.
-- [ ] Check WCAG AA contrast and visible keyboard focus.
-- [ ] Document the design system in `docs/design/visual-design.md`, with before and after screenshots.
+- [x] Define design tokens as CSS custom properties: a colour palette (neutrals, one accent, and semantic colours for gains, losses, and warnings), typography scale, spacing, radii, and shadows.
+- [x] Choose a colour-blind-safe chart palette, with one consistent colour per category across all charts.
+- [x] Support light and dark themes, following the system setting.
+- [x] Restyle the Dashboard and Rebalancing pages with the tokens: calm surfaces, clear hierarchy, and fewer decorative effects (gradients, glows, coloured edge bars, uppercase labels).
+- [x] Present numbers consistently: tabular figures, right-aligned amounts, and one convention for signs and colours of changes.
+- [x] Check WCAG AA contrast and visible keyboard focus.
+- [x] Document the design system in `docs/design/visual-design.md`, with before and after screenshots.
 
 **Deliverable:** A consistent, professional visual identity, applied to the existing pages and ready for the new ones.
 
@@ -65,31 +65,31 @@ The current styling looks generic. Define a design system before new pages are b
 
 **Data flow:** UI → FastAPI → PostgreSQL → Analytics → Dashboard
 
-- [ ] Design the schema for users, holdings, snapshots, snapshot values, liabilities, categories, and rebalancing settings (buckets, reserves, members), with an owner on every row.
-- [ ] Store amounts as exact decimals.
-- [ ] Add database migrations.
-- [ ] Replace the YAML and `rebalancing.json` loaders with a database repository layer, keeping the existing analytics unchanged.
-- [ ] Add a command that imports YAML records and `rebalancing.json` into the database.
-- [ ] Run the tests against a real PostgreSQL instance.
+- [x] Design the schema for users, holdings, snapshots, snapshot values, liabilities, categories, and rebalancing settings (buckets, reserves, members), with an owner on every row.
+- [x] Store amounts as exact decimals.
+- [x] Add database migrations.
+- [x] Replace the YAML and `rebalancing.json` loaders with a database repository layer, keeping the existing analytics unchanged.
+- [x] Add a command that imports YAML records and `rebalancing.json` into the database.
+- [x] Run the tests against a real PostgreSQL instance.
 
 **Deliverable:** Dashboard and rebalancing served from the database, with identical results to the YAML and JSON version.
 
 ## Phase 6 — Data Entry from the UI
 
-- [ ] Add API endpoints to create, update, and delete snapshots, holdings, and liabilities.
-- [ ] Add a "New snapshot" form, pre-filled from the latest snapshot.
-- [ ] Let users add, rename, recategorize, and close holdings, and link mortgages to properties.
-- [ ] Validate input on client and server, with clear error messages.
-- [ ] Add a snapshot list with edit and delete actions.
+- [x] Add API endpoints to create, update, and delete snapshots, holdings, and liabilities.
+- [x] Add a "New snapshot" form, pre-filled from the latest snapshot.
+- [x] Let users add, rename, recategorize, and close holdings, and link mortgages to properties.
+- [x] Validate input on client and server, with clear error messages.
+- [x] Add a snapshot list with edit and delete actions.
 
 **Deliverable:** All financial data managed from the UI, with no file editing.
 
 ## Phase 7 — Rebalancing Settings
 
-- [ ] Add API endpoints to read and replace the rebalancing settings in one transaction, with validation.
-- [ ] Add an editor for buckets, weights, reserves, excluded categories, and fill order.
-- [ ] Manage categories, including the categories excluded from disposable net value.
-- [ ] Preview the effect of a change before saving it.
+- [x] Add API endpoints to read and replace the rebalancing settings in one transaction, with validation.
+- [x] Add an editor for buckets, weights, reserves, excluded categories, and fill order.
+- [x] Manage categories, including the categories excluded from disposable net value.
+- [x] Preview the effect of a change before saving it.
 
 **Deliverable:** Rebalancing fully configurable from the UI.
 
@@ -109,6 +109,7 @@ The current styling looks generic. Define a design system before new pages are b
 - [ ] Let users choose the language from the user menu (remembered per user, and per browser before signing in); default to the browser language. Category and holding names are user data and are not translated.
 - [ ] Make the snapshot form and dashboard usable on mobile.
 - [ ] Add revaluation reminders for rarely updated holdings, such as properties.
+- [ ] Show each holding's value history, for example from the snapshot form or the dashboard's holdings table.
 - [ ] Add an empty-state onboarding flow for new users, with optional demo data.
 
 **Deliverable:** First complete MVP, usable by people other than the author.

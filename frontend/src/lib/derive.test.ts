@@ -43,13 +43,14 @@ describe('categoryAllocation', () => {
 });
 
 describe('investmentMix', () => {
-  it('always returns the three segments, with zero for missing categories', () => {
+  it('always returns the three segments, with zero for missing categories and fixed colours', () => {
     const mix = investmentMix([{ name: 'Accions', value: 500, share: 100 }]);
     expect(mix.map((s) => [s.name, s.value])).toEqual([
       ['Immobles', 0],
       ['Accions', 500],
       ['Efectiu i bons CT', 0],
     ]);
+    expect(mix.map((s) => s.color)).toEqual(['var(--chart-3)', 'var(--chart-2)', 'var(--chart-1)']);
   });
 });
 
@@ -66,8 +67,13 @@ describe('yearToDateChange', () => {
 });
 
 describe('averageMovementRows', () => {
-  it('turns keys into readable labels', () => {
+  it('labels each balance sheet line', () => {
     const rows = averageMovementRows({ liquid_assets: 1, non_liquid_assets: 2, liabilities: 3, net_worth: 4 });
-    expect(rows.map((r) => r.name)).toEqual(['liquid assets', 'non liquid assets', 'liabilities', 'net worth']);
+    expect(rows.map((r) => [r.name, r.value])).toEqual([
+      ['Liquid assets', 1],
+      ['Non-liquid assets', 2],
+      ['Liabilities', 3],
+      ['Net worth', 4],
+    ]);
   });
 });

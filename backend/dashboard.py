@@ -2,10 +2,11 @@
 
 from __future__ import annotations
 
-from .config import EXCLUDED_CATEGORY, RateBasis
-from .ledger import HoldingRow, Snapshot, Totals, process_records
+from collections.abc import Set as AbstractSet
+
+from .config import RateBasis
+from .ledger import DEFAULT_EXCLUDED, HoldingRow, Snapshot, Totals, process_records
 from .models import Record
-from .records import load_records
 from .schemas import (
     AllocationItem,
     AssetHistoryItem,
@@ -162,8 +163,11 @@ def asset_history(rows: list[HoldingRow]) -> list[AssetHistoryItem]:
     ]
 
 
-def build_dashboard(records: list[Record], rate_basis: RateBasis = "last_year") -> DashboardPayload:
-    snapshots, rows = process_records(records)
+def build_dashboard(
+    records: list[Record], rate_basis: RateBasis = "last_year", excluded: AbstractSet[str] = DEFAULT_EXCLUDED
+) -> DashboardPayload:
+    """The dashboard payload; ``excluded`` categories are left out of the disposable net value."""
+    snapshots, rows = process_records(records, excluded)
     monthly = monthly_summary(snapshots)
     latest = snapshots[-1]
     latest_rows = [h for h in rows if h.date == latest.date]
@@ -171,7 +175,7 @@ def build_dashboard(records: list[Record], rate_basis: RateBasis = "last_year") 
     return {
         "meta": {
             "latest_date": latest.date.isoformat(),
-            "excluded_category": EXCLUDED_CATEGORY,
+            "excluded_categories": sorted(excluded),
             "historical_growth_basis": rate_basis,
         },
         "summary": summary(snapshots, monthly, rate_basis),
@@ -182,8 +186,3 @@ def build_dashboard(records: list[Record], rate_basis: RateBasis = "last_year") 
         "latest_holdings": latest_holdings(latest_rows),
         "asset_history": asset_history(rows),
     }
-
-
-def calculate_payload(rate_basis: RateBasis = "last_year") -> DashboardPayload:
-    """Dashboard built from the records saved on disk."""
-    return build_dashboard(load_records(), rate_basis)

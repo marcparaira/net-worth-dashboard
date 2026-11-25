@@ -4,7 +4,8 @@ export type RateBasis = 'last_year' | 'overall';
 
 export interface Meta {
   latest_date: string;
-  excluded_category: string;
+  /** Categories left out of the disposable net value. */
+  excluded_categories: string[];
   historical_growth_basis: RateBasis;
 }
 
@@ -120,4 +121,115 @@ export interface RebalancingPayload {
   buckets: RebalancingBucket[];
   excluded: RebalancingHolding[];
   unassigned: RebalancingHolding[];
+}
+
+// Data entry: /api/holdings, /api/liabilities, /api/snapshots, /api/categories
+
+export type Liquidity = 'liquid' | 'non_liquid';
+
+export interface HoldingOut {
+  id: string;
+  name: string;
+  category: string;
+  liquidity: Liquidity;
+  closed_on: string | null;
+  mortgage_id: string | null;
+  latest_amount: number | null;
+  latest_date: string | null;
+  value_count: number;
+  in_rebalancing: boolean;
+}
+
+export interface HoldingIn {
+  name: string;
+  category: string;
+  liquidity: Liquidity;
+  closed_on: string | null;
+}
+
+export interface LiabilityOut {
+  id: string;
+  name: string;
+  /** The property this liability finances (a mortgage), if any. */
+  holding_id: string | null;
+  closed_on: string | null;
+  latest_amount: number | null;
+  latest_date: string | null;
+  value_count: number;
+}
+
+export interface LiabilityIn {
+  name: string;
+  holding_id: string | null;
+  closed_on: string | null;
+}
+
+export interface SnapshotValue {
+  holding_id: string | null;
+  liability_id: string | null;
+  amount: number;
+}
+
+export interface SnapshotOut {
+  id: string;
+  date: string;
+  values: SnapshotValue[];
+}
+
+export interface SnapshotDetail extends SnapshotOut {
+  previous: SnapshotOut | null;
+}
+
+export interface SnapshotIn {
+  date: string;
+  values: SnapshotValue[];
+}
+
+export interface SnapshotSummary {
+  id: string;
+  date: string;
+  net_worth: number;
+  change: number | null;
+  value_count: number;
+}
+
+// Settings: /api/categories, /api/rebalancing/settings, /api/rebalancing/preview
+
+export interface CategoryOut {
+  id: string;
+  name: string;
+  excluded_from_disposable: boolean;
+  excluded_from_rebalancing: boolean;
+  holding_count: number;
+  /** Referenced by a reserve or bucket in the rebalancing settings. */
+  in_rebalancing: boolean;
+}
+
+export interface CategoryIn {
+  name: string;
+  excluded_from_disposable: boolean;
+  excluded_from_rebalancing: boolean;
+}
+
+export interface ReserveSettings {
+  name: string;
+  amount: number;
+  categories: string[];
+}
+
+export interface BucketSettings {
+  name: string;
+  weight: number;
+  categories: string[];
+  /** Holding ids (from /api/holdings). */
+  holding_ids: string[];
+  children: BucketSettings[];
+}
+
+export interface RebalancingSettings {
+  excluded_categories: string[];
+  reserves: ReserveSettings[];
+  buckets: BucketSettings[];
+  /** Names of reserves and leaf buckets, in the order they get first pick. */
+  fill_order: string[];
 }

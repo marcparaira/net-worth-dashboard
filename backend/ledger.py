@@ -2,11 +2,15 @@
 
 from __future__ import annotations
 
+from collections.abc import Set as AbstractSet
 from dataclasses import dataclass
 from datetime import date
 
 from .config import EXCLUDED_CATEGORY, LIABILITY_CATEGORY
 from .models import Holding, Liability, Record
+
+# Categories left out of the disposable net value when the caller does not say otherwise.
+DEFAULT_EXCLUDED: frozenset[str] = frozenset({EXCLUDED_CATEGORY})
 
 
 @dataclass(frozen=True)
@@ -73,16 +77,15 @@ def standalone_liabilities(record: Record) -> list[Liability]:
     return [item for item in record.liabilities.non_liquid if item.name not in linked_names]
 
 
-def record_totals(record: Record) -> Totals:
+def record_totals(record: Record, excluded: AbstractSet[str] = DEFAULT_EXCLUDED) -> Totals:
+    """Balance-sheet totals; holdings in ``excluded`` categories are left out of the disposable net value."""
     liquid_total = sum(item.value for item in record.assets.liquid)
     non_liquid_total = sum(item.value for item in record.assets.non_liquid)
     liabilities_total = sum(item.value for item in standalone_liabilities(record)) + sum(
         mortgage_value(item) for item in record.holdings
     )
     # Excluded holdings leave with their linked mortgage, i.e. only their equity is removed.
-    excluded_equity = sum(
-        item.value - mortgage_value(item) for item in record.holdings if item.category == EXCLUDED_CATEGORY
-    )
+    excluded_equity = sum(item.value - mortgage_value(item) for item in record.holdings if item.category in excluded)
     net_worth = liquid_total + non_liquid_total - liabilities_total
     return Totals(
         liquid_assets=liquid_total,
@@ -121,9 +124,13 @@ def record_rows(record: Record) -> list[HoldingRow]:
     return holding_rows + liability_rows
 
 
-def process_records(records: list[Record]) -> tuple[list[Snapshot], list[HoldingRow]]:
+def process_records(
+    records: list[Record], excluded: AbstractSet[str] = DEFAULT_EXCLUDED
+) -> tuple[list[Snapshot], list[HoldingRow]]:
     """Snapshots sorted by date and holding rows sorted by (date, category, name)."""
-    snapshots = sorted((Snapshot(record.date, record_totals(record)) for record in records), key=lambda s: s.date)
+    snapshots = sorted(
+        (Snapshot(record.date, record_totals(record, excluded)) for record in records), key=lambda s: s.date
+    )
     rows = sorted(
         (row for record in records for row in record_rows(record)), key=lambda h: (h.date, h.category, h.name)
     )

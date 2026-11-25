@@ -21,7 +21,7 @@ done
 
 PYTHON=""
 for candidate in "$ROOT_DIR/backend/.venv/bin/python" "$ROOT_DIR/.venv/bin/python"; do
-    if [[ -x "$candidate" ]] && "$candidate" -c 'import uvicorn, fastapi, pydantic, yaml' 2>/dev/null; then
+    if [[ -x "$candidate" ]] && "$candidate" -c 'import uvicorn, fastapi, pydantic, yaml, sqlalchemy, alembic, psycopg' 2>/dev/null; then
         PYTHON="$candidate"
         break
     fi
@@ -54,6 +54,8 @@ trap 'exit 143' TERM
 
 (
     cd "$ROOT_DIR"
+    # The database runs in compose: podman compose up -d db
+    "$PYTHON" -m backend.migrate
     exec "$PYTHON" -m uvicorn backend.app:app --reload --reload-dir backend --port 8000
 ) &
 backend_pid=$!

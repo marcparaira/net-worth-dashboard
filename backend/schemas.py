@@ -14,7 +14,8 @@ class Health(TypedDict):
 
 class Meta(TypedDict):
     latest_date: str
-    excluded_category: str
+    # Categories left out of the disposable net value.
+    excluded_categories: list[str]
     historical_growth_basis: RateBasis
 
 

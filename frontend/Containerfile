@@ -7,13 +7,16 @@ WORKDIR /app
 RUN chown node:node /app
 USER node
 COPY --chown=node:node package.json package-lock.json .npmrc ./
-RUN npm ci
+# Record which lockfile node_modules was installed from (see the dev stage).
+RUN npm ci && cp package-lock.json node_modules/.installed-package-lock.json
 
 # --- Development server with hot reload; compose mounts the source over /app.
+# node_modules lives in a named volume that outlives image rebuilds, so on start the
+# dependencies are reinstalled whenever package-lock.json differs from the installed one.
 FROM deps AS dev
 COPY --chown=node:node . .
 EXPOSE 5173
-CMD ["npx", "vite", "--host", "0.0.0.0", "--port", "5173", "--strictPort"]
+CMD ["sh", "-c", "cmp -s package-lock.json node_modules/.installed-package-lock.json || { echo 'package-lock.json changed: installing dependencies'; npm install --no-audit --no-fund && cp package-lock.json node_modules/.installed-package-lock.json; } && exec npx vite --host 0.0.0.0 --port 5173 --strictPort"]
 
 # --- Production build, used by CI to check that the static build succeeds.
 FROM deps AS build
