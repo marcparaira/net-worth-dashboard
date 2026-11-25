@@ -1,4 +1,5 @@
 """FastAPI entry point: ``uvicorn backend.app:app``."""
+
 from __future__ import annotations
 
 from fastapi import FastAPI

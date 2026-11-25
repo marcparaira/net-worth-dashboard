@@ -18,22 +18,22 @@ evaluations. System architecture is documented separately.
 | Component | Technology | Status |
 |---|---|---|
 | Frontend | React, Vite | Selected |
-| Frontend Language | TypeScript (migrating from JavaScript) | Proposed |
+| Frontend Language | TypeScript 6.0 (7.0 once typescript-eslint supports it) | Selected |
 | Charts | Recharts | Selected |
 | Icons | Lucide | Selected |
 | Frontend Development Container | Node.js running the Vite dev server (local only) | Selected |
 | Backend | Python, FastAPI | Selected |
 | Validation and API Schemas | Pydantic | Selected |
-| Backend Container Runtime | Python on Alpine Linux | Proposed |
-| Database | PostgreSQL (same major version locally and in production) | Selected |
+| Backend Container Runtime | Python 3.13 on Alpine Linux | Selected |
+| Database | PostgreSQL 17 (same major version locally and in production) | Selected |
 | ORM and Migrations | SQLAlchemy, Alembic | Selected |
 | Authentication | Amazon Cognito (or a self-hosted alternative for local development) | Proposed |
 | Internationalization | i18next | Proposed |
-| Backend Tests | unittest (moving to pytest) | Selected |
-| Frontend Tests | Vitest, React Testing Library | Proposed |
-| Linting and Formatting | Ruff, basedpyright, ESLint, Prettier | Proposed |
-| Secret Scanning | gitleaks | Proposed |
-| CI | GitHub Actions | Proposed |
+| Backend Tests | pytest (running the existing unittest tests) | Selected |
+| Frontend Tests | Vitest, React Testing Library | Selected |
+| Linting and Formatting | Ruff, basedpyright, ESLint (typescript-eslint), Prettier | Selected |
+| Secret Scanning | gitleaks | Selected |
+| CI | GitHub Actions | Selected |
 | Containerization | Podman, Podman Compose | Selected |
 | Cloud Provider | Amazon Web Services (AWS) | Selected |
 | Infrastructure as Code | AWS CDK (TypeScript) | Proposed |

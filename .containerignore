@@ -1,0 +1,15 @@
+# Build context for backend/Containerfile (repository root).
+.git
+.github
+.venv
+.env
+.env.*
+**/__pycache__
+**/*.pyc
+backend/tests
+backend/requirements-dev.txt
+backend/records
+backend/rebalancing.json
+data
+docs
+frontend

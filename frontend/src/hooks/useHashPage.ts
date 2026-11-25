@@ -1,12 +1,13 @@
 import { useEffect, useState } from 'react';
+import type { Option } from '../lib/constants';
 
-const read = (pages) => {
+const read = <T extends string>(pages: readonly Option<T>[]): T => {
   const hash = window.location.hash.slice(1);
-  return pages.some(page => page.value === hash) ? hash : pages[0].value;
+  return pages.find((page) => page.value === hash)?.value ?? pages[0].value;
 };
 
 /** Current page kept in the URL hash, so reloads and back/forward keep it. */
-export function useHashPage(pages) {
+export function useHashPage<T extends string>(pages: readonly Option<T>[]): [T, (value: T) => void] {
   const [page, setPage] = useState(() => read(pages));
 
   useEffect(() => {
@@ -15,5 +16,10 @@ export function useHashPage(pages) {
     return () => window.removeEventListener('hashchange', onChange);
   }, [pages]);
 
-  return [page, (value) => { window.location.hash = value; }];
+  return [
+    page,
+    (value) => {
+      window.location.hash = value;
+    },
+  ];
 }

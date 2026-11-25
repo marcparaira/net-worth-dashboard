@@ -1,17 +1,19 @@
 @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap');
 
-.holding-main, .holding-value-stack {
+.holding-main,
+.holding-value-stack {
   display: flex;
   flex-direction: column;
   gap: 4px;
 }
 
 .holding-main strong {
-  font-size: .88rem;
+  font-size: 0.88rem;
   color: #f4f7ff;
 }
 
-.holding-main small, .holding-value-stack small {
+.holding-main small,
+.holding-value-stack small {
   color: #8ea0bc;
 }
 
@@ -31,8 +33,9 @@
   color: #fcd34d;
 }
 
-.table-row.is-mortgaged, .allocation-list .mortgaged-asset {
-  background: linear-gradient(90deg,#151d2f 0,#171f31 58%,#1d2333 100%);
+.table-row.is-mortgaged,
+.allocation-list .mortgaged-asset {
+  background: linear-gradient(90deg, #151d2f 0, #171f31 58%, #1d2333 100%);
   box-shadow: inset 3px 0 0 #f59e0b;
 }
 
@@ -56,7 +59,7 @@
 }
 
 :root {
-  font-family: 'DM Sans',sans-serif;
+  font-family: 'DM Sans', sans-serif;
   color: #edf3ff;
   background: #080d18;
   font-synthesis: none;
@@ -87,19 +90,19 @@ body {
 .panel header span {
   color: #7dd3fc;
   font-weight: 700;
-  font-size: .72rem;
-  letter-spacing: .16em;
+  font-size: 0.72rem;
+  letter-spacing: 0.16em;
 }
 
 .hero h1 {
   font: 700 1.9rem 'Manrope';
   margin: 0 0 4px;
-  letter-spacing: -.02em;
+  letter-spacing: -0.02em;
 }
 
 .hero p {
   color: #7f8ca2;
-  font-size: .85rem;
+  font-size: 0.85rem;
   margin: 0;
 }
 
@@ -115,13 +118,14 @@ body {
 
 .metrics-grid {
   display: grid;
-  grid-template-columns: repeat(4,1fr);
+  grid-template-columns: repeat(4, 1fr);
   gap: 14px;
   margin-bottom: 14px;
 }
 
-.metric-card, .panel {
-  background: linear-gradient(145deg,#111a2eeb,#0c1322e8);
+.metric-card,
+.panel {
+  background: linear-gradient(145deg, #111a2eeb, #0c1322e8);
   border: 1px solid #22304a;
   border-radius: 20px;
   box-shadow: 0 22px 60px #0005;
@@ -135,7 +139,7 @@ body {
   display: flex;
   justify-content: space-between;
   color: #91a0b9;
-  font-size: .84rem;
+  font-size: 0.84rem;
 }
 
 .metric-card strong {
@@ -149,7 +153,7 @@ body {
   align-items: center;
   gap: 5px;
   color: #7f8ca2;
-  font-size: .76rem;
+  font-size: 0.76rem;
 }
 
 .positive {
@@ -172,7 +176,7 @@ body {
 
 .summary-cards {
   display: grid;
-  grid-template-columns: repeat(3,1fr);
+  grid-template-columns: repeat(3, 1fr);
   gap: 12px;
   margin: 22px 0 8px;
 }
@@ -184,7 +188,8 @@ body {
   border: 1px solid #2a3b59;
 }
 
-.summary-card span, .summary-card small {
+.summary-card span,
+.summary-card small {
   color: #8d9bb2;
 }
 
@@ -195,7 +200,7 @@ body {
 }
 
 .summary-card small {
-  font-size: .76rem;
+  font-size: 0.76rem;
 }
 
 .chart {
@@ -208,7 +213,7 @@ body {
 }
 
 .footnote {
-  font-size: .75rem;
+  font-size: 0.75rem;
   color: #758198;
   margin: 8px 0 0;
 }
@@ -220,7 +225,7 @@ body {
 }
 
 .two-col.lower {
-  grid-template-columns: .9fr 1.1fr;
+  grid-template-columns: 0.9fr 1.1fr;
 }
 
 .two-col.even {
@@ -267,11 +272,11 @@ body {
 }
 
 .donut-label span {
-  font-size: .68rem;
+  font-size: 0.68rem;
   color: #7d8ba4;
 }
 
-.allocation-list>div {
+.allocation-list > div {
   display: grid;
   grid-template-columns: 10px 1fr auto;
   gap: 9px;
@@ -287,7 +292,7 @@ body {
 }
 
 .allocation-list span {
-  font-size: .78rem;
+  font-size: 0.78rem;
 }
 
 .allocation-list small {
@@ -297,7 +302,7 @@ body {
 }
 
 .allocation-list b {
-  font-size: .78rem;
+  font-size: 0.78rem;
 }
 
 .holdings-table {
@@ -306,7 +311,8 @@ body {
   overflow: auto;
 }
 
-.table-head, .table-row {
+.table-head,
+.table-row {
   display: grid;
   grid-template-columns: 1fr 110px 110px;
   gap: 14px;
@@ -315,24 +321,25 @@ body {
 
 .table-head {
   color: #70809a;
-  font-size: .69rem;
+  font-size: 0.69rem;
   text-transform: uppercase;
-  letter-spacing: .08em;
+  letter-spacing: 0.08em;
   padding: 0 10px 8px;
 }
 
-.table-head span:last-child, .table-row b {
+.table-head span:last-child,
+.table-row b {
   text-align: right;
 }
 
 .table-row {
   padding: 12px 10px;
   border-top: 1px solid #1e2a41;
-  font-size: .82rem;
+  font-size: 0.82rem;
 }
 
 .pill {
-  font-size: .68rem;
+  font-size: 0.68rem;
   padding: 4px 8px;
   border-radius: 99px;
   width: max-content;
@@ -369,11 +376,13 @@ body {
   }
 }
 
-@media (max-width:1050px) {
+@media (max-width: 1050px) {
   .metrics-grid {
-    grid-template-columns: repeat(2,1fr);
+    grid-template-columns: repeat(2, 1fr);
   }
-  .two-col, .two-col.lower, .two-col.even {
+  .two-col,
+  .two-col.lower,
+  .two-col.even {
     grid-template-columns: 1fr;
   }
   .allocation-wrap {
@@ -381,23 +390,26 @@ body {
   }
 }
 
-@media (max-width:650px) {
+@media (max-width: 650px) {
   .app-shell {
     padding: 28px 15px 50px;
   }
-  .metrics-grid, .summary-cards {
+  .metrics-grid,
+  .summary-cards {
     grid-template-columns: 1fr;
   }
   .chart {
     height: 290px;
   }
-  .allocation-wrap, .ring-wrap {
+  .allocation-wrap,
+  .ring-wrap {
     grid-template-columns: 1fr;
   }
   .allocation-list {
     margin-top: -10px;
   }
-  .table-head, .table-row {
+  .table-head,
+  .table-row {
     grid-template-columns: 1fr 85px 95px;
   }
   .panel {
@@ -431,7 +443,7 @@ body {
   padding: 8px 14px;
   background: transparent;
   color: #9fb0cb;
-  font: 600 .78rem 'DM Sans';
+  font: 600 0.78rem 'DM Sans';
   cursor: pointer;
 }
 
@@ -470,7 +482,8 @@ body {
   grid-template-columns: 1fr 64px 92px 92px 128px;
 }
 
-.rebalance-row span:not(.holding-main), .rebalance-row b {
+.rebalance-row span:not(.holding-main),
+.rebalance-row b {
   text-align: right;
 }
 
@@ -525,7 +538,7 @@ body {
   border-radius: 14px;
   background: #3d2f1e;
   color: #fcd34d;
-  font-size: .82rem;
+  font-size: 0.82rem;
 }
 
 .slice-grid {
@@ -551,18 +564,18 @@ body {
 
 .slice-card header span {
   grid-column: 1 / -1;
-  font-size: .68rem;
-  letter-spacing: .1em;
+  font-size: 0.68rem;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
   color: #7d8ba4;
 }
 
 .slice-card header strong {
-  font: 700 .95rem 'Manrope';
+  font: 700 0.95rem 'Manrope';
 }
 
 .slice-card header b {
-  font: 700 .95rem 'Manrope';
+  font: 700 0.95rem 'Manrope';
   color: var(--accent);
 }
 
@@ -580,7 +593,7 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-size: .82rem;
+  font-size: 0.82rem;
 }
 
 .split-bar {
@@ -601,7 +614,7 @@ body {
   display: flex;
   flex-wrap: wrap;
   gap: 6px 16px;
-  font-size: .74rem;
+  font-size: 0.74rem;
   color: #8ea0bc;
 }
 
@@ -622,7 +635,7 @@ body {
   font-weight: 600;
 }
 
-@media (max-width:650px) {
+@media (max-width: 650px) {
   .page-nav {
     justify-content: flex-start;
     margin-bottom: 18px;

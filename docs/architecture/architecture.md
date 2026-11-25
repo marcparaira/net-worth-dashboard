@@ -175,8 +175,8 @@ is only read once, by the import command.
 | Environment | Frontend | API | Database | Status |
 |---|---|---|---|---|
 | **Local (current)** | Vite dev server on the host | uvicorn on the host (`run-dev.sh`) | YAML files | ✅ Implemented |
-| **Local (target)** | Vite dev server in a compose service | API container (uvicorn) | PostgreSQL container | 🔲 Planned |
-| **CI** | Build and unit tests | Image build, tests against a PostgreSQL container | PostgreSQL container | 🔲 Planned |
+| **Local (compose)** | Vite dev server in a compose service | API container (uvicorn) | PostgreSQL container (unused until Phase 3) | ✅ Implemented |
+| **CI** | Lint, type check, tests, build | Lint, type check, tests, image build and smoke test | PostgreSQL container from Phase 3 | ✅ Implemented |
 | **Staging** | S3 + CloudFront | Lambda + HTTP API | Aurora Serverless v2 | 🔲 Planned |
 | **Production** | S3 + CloudFront | Lambda + HTTP API | Aurora Serverless v2 | 🔲 Planned |
 

@@ -15,6 +15,7 @@ paper to the reserves and buckets that may hold it:
    targets. A holding listed by id in a bucket goes only to that bucket and never to a reserve.
    Holdings nothing accepts are reported as unassigned.
 """
+
 from __future__ import annotations
 
 import json
@@ -136,8 +137,9 @@ def fill_steps(
     for step in config.steps():
         if isinstance(step, Reserve):
             target = step.amount
-            eligible = [hid for hid in result.remaining
-                        if hid not in pinned_ids and by_id[hid].category in step.categories]
+            eligible = [
+                hid for hid in result.remaining if hid not in pinned_ids and by_id[hid].category in step.categories
+            ]
         else:
             target = targets[step.name]
             eligible = [hid for hid in result.remaining if accepts(step, by_id[hid], pinned_ids)]
@@ -208,8 +210,7 @@ def build_rebalancing(records: list[Record], config: RebalancingConfig) -> Rebal
             assigned[leaf.name][hid] = assigned[leaf.name].get(hid, 0.0) + part
 
     def holdings_of(name: str) -> list[RebalancingHolding]:
-        entries = [holding_entry(by_id[hid], amount) for hid, amount in assigned[name].items()
-                   if money(amount)]
+        entries = [holding_entry(by_id[hid], amount) for hid, amount in assigned[name].items() if money(amount)]
         return sorted(entries, key=lambda h: h["amount"], reverse=True)
 
     def bucket_item(bucket: Bucket, share: float, parent_share: float) -> RebalancingBucket:
@@ -239,13 +240,15 @@ def build_rebalancing(records: list[Record], config: RebalancingConfig) -> Rebal
     for reserve in config.reserves:
         holdings = holdings_of(reserve.name)
         current = sum(h["amount"] for h in holdings)
-        reserves.append({
-            "name": reserve.name,
-            "target": money(reserve.amount),
-            "current": money(current),
-            "gap": money(reserve.amount - current),
-            "holdings": holdings,
-        })
+        reserves.append(
+            {
+                "name": reserve.name,
+                "target": money(reserve.amount),
+                "current": money(current),
+                "gap": money(reserve.amount - current),
+                "holdings": holdings,
+            }
+        )
 
     top_weight = sum(b.weight for b in config.buckets)
     return {

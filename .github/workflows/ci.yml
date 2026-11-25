@@ -1,0 +1,67 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  backend:
+    name: Backend (lint, format, types, tests)
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.13"
+          cache: pip
+          cache-dependency-path: backend/requirements-dev.txt
+      - run: pip install -r backend/requirements-dev.txt
+      - run: ruff check .
+      - run: ruff format --check .
+      - run: basedpyright
+      - run: pytest
+
+  frontend:
+    name: Frontend (lint, format, types, tests, build)
+    runs-on: ubuntu-24.04
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "24"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run format:check
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run build
+
+  images:
+    name: Container images
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7
+      - name: Build API image
+        run: podman build -f backend/Containerfile --target runtime -t net-worth-api .
+      - name: Build web images (dev server and production build)
+        run: |
+          podman build --target dev -t net-worth-web frontend
+          podman build --target build frontend
+      - name: Smoke-test the API image with the sample data
+        run: |
+          podman run -d --name api -p 8000:8000 net-worth-api
+          curl -sf --retry 20 --retry-delay 1 --retry-all-errors http://127.0.0.1:8000/api/health
+          curl -sf http://127.0.0.1:8000/api/dashboard > /dev/null
+          curl -sf http://127.0.0.1:8000/api/rebalancing > /dev/null
+      - name: API logs
+        if: always()
+        run: podman logs api || true

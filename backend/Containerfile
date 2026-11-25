@@ -1,0 +1,23 @@
+# API image. Build from the repository root:
+#   podman build -f backend/Containerfile -t net-worth-api .
+
+# --- Build stage: install dependencies into a virtual environment.
+FROM docker.io/library/python:3.13-alpine AS build
+RUN python -m venv /opt/venv
+ENV PATH=/opt/venv/bin:$PATH
+COPY backend/requirements.txt /tmp/requirements.txt
+RUN pip install --no-cache-dir -r /tmp/requirements.txt
+
+# --- Runtime stage: the virtual environment and the application code only.
+FROM docker.io/library/python:3.13-alpine AS runtime
+RUN addgroup -S app && adduser -S -G app app
+WORKDIR /app
+COPY --from=build /opt/venv /opt/venv
+COPY backend/ backend/
+COPY sample-data/ sample-data/
+ENV PATH=/opt/venv/bin:$PATH \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1
+USER app
+EXPOSE 8000
+CMD ["uvicorn", "backend.app:app", "--host", "0.0.0.0", "--port", "8000"]

@@ -1,4 +1,5 @@
 """Application-wide settings and domain constants."""
+
 from __future__ import annotations
 
 import os

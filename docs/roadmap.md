@@ -25,12 +25,12 @@ Keep personal financial data out of the repository and its history.
 
 ## Phase 2 — Project Foundation
 
-- [ ] Create a multi-stage Podman Containerfile for the API, and a development Containerfile for the web application running the Vite dev server.
-- [ ] Add a `compose.yaml` that runs the web application (Vite dev server with hot reload), API, and PostgreSQL with `podman compose up --build`.
-- [ ] Migrate the frontend to TypeScript and pin dependency versions.
-- [ ] Set up linting, formatting, type checking, and tests for backend and frontend.
-- [ ] Set up GitHub Actions CI to lint, test, and build the images.
-- [ ] Document the local development commands.
+- [x] Create a multi-stage Podman Containerfile for the API, and a development Containerfile for the web application running the Vite dev server.
+- [x] Add a `compose.yaml` that runs the web application (Vite dev server with hot reload), API, and PostgreSQL with `podman compose up --build`.
+- [x] Migrate the frontend to TypeScript and pin dependency versions.
+- [x] Set up linting, formatting, type checking, and tests for backend and frontend.
+- [x] Set up GitHub Actions CI to lint, test, and build the images.
+- [x] Document the local development commands.
 
 **Deliverable:** One-command local environment with healthy services.
 

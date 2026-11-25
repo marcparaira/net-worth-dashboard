@@ -31,36 +31,44 @@ ignored, and gitleaks checks every commit (see below).
 - Average monthly movement
 - Historical disposable-growth selector: recent 12 months or all-time average
 
-## Run the API
+## Run locally
 
-From the project folder:
+### With Podman (recommended)
 
-```bash
-python -m venv .venv
-source .venv/bin/activate  # Windows: .venv\Scripts\activate
-pip install -r backend/requirements.txt
-uvicorn backend.app:app --reload --reload-dir backend --port 8000
-```
-
-## Run the React app
+Requires Podman and podman-compose (`sudo apt install podman podman-compose`).
 
 ```bash
-cd frontend
-npm install
-npm run dev
+cp .env.example .env        # once; set NET_WORTH_DATA_DIR to use your own data
+podman compose up --build   # add -d to run in the background
 ```
 
-Open http://localhost:5173.
+| Service | URL | Notes |
+|---|---|---|
+| Web app | http://localhost:5173 | Vite dev server, hot reload |
+| API | http://localhost:8000 | uvicorn with `--reload`; data mounted read-only at `/data` |
+| PostgreSQL | localhost:5432 | Used from Phase 3; user, password and database: `networth` |
 
-## Run both together
+Ports bind to localhost only; change them with `WEB_PORT`, `API_PORT` and `DB_PORT` in
+`.env`. Other useful commands:
 
 ```bash
-./run-dev.sh
+podman compose ps                 # status and health
+podman compose logs -f api        # follow one service's logs
+podman compose down               # stop (add -v to also delete the database volume)
 ```
 
-The script automatically uses `backend/.venv` or `.venv` (with backend dependencies installed), so no manual activation is needed. Install frontend dependencies with `npm --prefix frontend install` on first use.
+### On the host
 
-The script starts the FastAPI backend on port 8000 and the Vite frontend on port 5173, and stops both when you exit.
+Requires Python 3.13 and Node.js 24.
+
+```bash
+python3.13 -m venv .venv
+.venv/bin/pip install -r backend/requirements-dev.txt
+npm --prefix frontend install
+./run-dev.sh                      # API on :8000 and web app on :5173; Ctrl+C stops both
+```
+
+`run-dev.sh` loads `.env`, uses `backend/.venv` or `.venv`, and stops both servers when either exits.
 
 ## API
 
@@ -94,10 +102,21 @@ Holdings no bucket accepts show up as a warning.
 
 ## Checks
 
-Run the tests from the project root. They use `sample-data/`, never your own data:
+The same checks run in CI (`.github/workflows/ci.yml`) on every push. Tests use
+`sample-data/`, never your own data.
 
 ```bash
-.venv/bin/python -m unittest discover -s backend/tests
+# Backend, from the project root
+.venv/bin/ruff check .            # lint
+.venv/bin/ruff format .           # format (use --check to only verify)
+.venv/bin/basedpyright            # type check
+.venv/bin/pytest                  # tests
+
+# Frontend
+cd frontend
+npm run check                     # lint, format check, type check and tests
+npm run format                    # format
+npm run build                     # production build
 ```
 
 Secrets and personal data are blocked by [gitleaks](https://github.com/gitleaks/gitleaks),
@@ -112,6 +131,10 @@ pre-commit install
 
 ## Code layout
 
+- `compose.yaml`: local environment (web, API, PostgreSQL)
+- `backend/Containerfile`, `frontend/Containerfile`: multi-stage images
+- `sample-data/`: fictitious records and rebalancing settings
+
 Backend (`backend/`):
 
 - `app.py`: FastAPI app and routes (thin)
@@ -122,11 +145,14 @@ Backend (`backend/`):
 - `timeseries.py`: month arithmetic, monthly interpolation, small numeric helpers
 - `dashboard.py`: builds each section of the API payload
 - `schemas.py`: typed shape of the API response
+- `requirements.txt`, `requirements-dev.txt`: pinned runtime and development dependencies
 
-Frontend (`frontend/src/`):
+Frontend (`frontend/src/`, TypeScript):
 
-- `App.jsx`: page layout
-- `hooks/useDashboard.js`: fetches the API payload
-- `lib/derive.js`: pure functions that turn the payload into chart data
-- `lib/format.js`, `lib/theme.js`, `lib/constants.js`: formatters, colours, shared chart props, category names
-- `components/`: one component per panel, plus shared pieces in `common.jsx`
+- `App.tsx`: page layout
+- `api/types.ts`: API payload types, kept in sync with `backend/schemas.py`
+- `hooks/useApi.ts`, `hooks/useDashboard.ts`: fetch the API payloads
+- `lib/derive.ts`, `lib/rebalancing.ts`: pure functions that turn payloads into chart data (with tests)
+- `lib/format.ts`, `lib/theme.ts`, `lib/constants.ts`: formatters, colours, shared chart props, category names
+- `components/`: one component per panel, plus shared pieces in `common.tsx`
+- `pages/`: Dashboard and Rebalancing pages
