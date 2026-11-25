@@ -1,18 +1,15 @@
 import type { HoldingItem } from '../api/types';
 import { CATEGORY } from '../lib/constants';
 import { euro } from '../lib/format';
-import { Panel } from './common';
-
-// e.g. "Liability" -> "liability", which styles the pill.
-const pillClass = (category: string): string => category.toLowerCase().replace('-', '');
+import { categoryColor } from '../lib/theme';
+import { Panel, Swatch } from './common';
 
 function HoldingValue({ holding }: { holding: HoldingItem }) {
+  // Liabilities are owed, so they are shown as negative amounts.
+  const value = holding.category === CATEGORY.liability ? -holding.value : holding.value;
   return (
     <span className="holding-value-stack">
-      <b>
-        {holding.category === CATEGORY.liability ? '−' : ''}
-        {euro.format(holding.value)}
-      </b>
+      <b>{euro.format(value)}</b>
       {holding.has_mortgage ? <small>Equity {euro.format(holding.equity_value)}</small> : null}
     </span>
   );
@@ -20,18 +17,21 @@ function HoldingValue({ holding }: { holding: HoldingItem }) {
 
 function HoldingRow({ holding }: { holding: HoldingItem }) {
   return (
-    <div className={`table-row ${holding.has_mortgage ? 'is-mortgaged' : ''}`}>
+    <div className="table-row">
       <span className="holding-main">
         <strong>{holding.name}</strong>
         {holding.has_mortgage ? (
           <small>
-            {holding.mortgage_name} · {euro.format(holding.mortgage_value)} debt
+            {holding.mortgage_name} · {euro.format(holding.mortgage_value)} outstanding
           </small>
         ) : null}
       </span>
       <span className="holding-tags">
-        <span className={`pill ${pillClass(holding.category)}`}>{holding.category}</span>
-        {holding.has_mortgage ? <span className="pill mortgage">Mortgage</span> : null}
+        <span className="category">
+          <Swatch color={categoryColor(holding.category)} />
+          {holding.category}
+        </span>
+        {holding.has_mortgage ? <span className="tag">Mortgage</span> : null}
       </span>
       <HoldingValue holding={holding} />
     </div>
@@ -40,11 +40,11 @@ function HoldingRow({ holding }: { holding: HoldingItem }) {
 
 export function HoldingsTable({ holdings }: { holdings: HoldingItem[] }) {
   return (
-    <Panel title="Latest holdings" kicker="DETAILS">
+    <Panel title="Latest holdings" description="Values from the latest snapshot.">
       <div className="holdings-table">
         <div className="table-head">
           <span>Holding</span>
-          <span>Type</span>
+          <span>Category</span>
           <span>Value</span>
         </div>
         {holdings.map((holding) => (

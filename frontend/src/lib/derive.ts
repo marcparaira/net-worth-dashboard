@@ -1,7 +1,7 @@
 // Pure functions that derive chart data from the /api/dashboard payload.
 import type { AllocationItem, AverageMonthlyChanges, DashboardPayload, HistoryPoint } from '../api/types';
 import { CATEGORY } from './constants';
-import { paletteColor } from './theme';
+import { categoryColor, SERIES_COLORS } from './theme';
 
 export interface CategoryTotal {
   name: string;
@@ -41,19 +41,13 @@ export function categoryAllocation(allocation: AllocationItem[] = []): CategoryT
     .sort((left, right) => right.value - left.value);
 }
 
-/**
- * Real estate equity, stocks and cash segments for the investment-mix donuts.
- * Colours follow the category allocation order so they match the other charts.
- */
+/** Real estate equity, stocks and cash segments for the investment-mix donuts, in their category colours. */
 export function investmentMix(categories: CategoryTotal[]): Segment[] {
-  return [CATEGORY.realEstate, CATEGORY.stocks, CATEGORY.cash].map((name) => {
-    const index = categories.findIndex((c) => c.name === name);
-    return {
-      name,
-      value: Math.max(categories[index]?.value ?? 0, 0),
-      color: paletteColor(index < 0 ? categories.length : index),
-    };
-  });
+  return [CATEGORY.realEstate, CATEGORY.stocks, CATEGORY.cash].map((name) => ({
+    name,
+    value: Math.max(categories.find((c) => c.name === name)?.value ?? 0, 0),
+    color: categoryColor(name),
+  }));
 }
 
 /** One row per record date with the gross value of each category. */
@@ -62,7 +56,7 @@ export function categoryHistory(
   categories: CategoryTotal[],
 ): { rows: CategoryHistoryRow[]; categories: string[] } {
   if (!data?.asset_history.length) return { rows: [], categories: [] };
-  // Reuse the allocation order so each category keeps the same colour in both charts.
+  // Largest categories first, so the legend order matches the allocation panel.
   const names = [...new Set([...categories.map((c) => c.name), ...data.asset_history.map((h) => h.category)])];
   const zeroes = Object.fromEntries(names.map((name) => [name, 0]));
   const byDate: Record<string, CategoryHistoryRow> = Object.fromEntries(
@@ -86,8 +80,14 @@ export function yearToDateChange(history: HistoryPoint[] = []): number | null {
   return baseline ? latest.net_worth - baseline.net_worth : null;
 }
 
-/** `average_monthly_changes` as bar-chart rows ("net_worth" -> "net worth"). */
-export function averageMovementRows(averageMonthlyChanges: AverageMonthlyChanges): { name: string; value: number }[] {
-  const entries = Object.entries(averageMonthlyChanges) as [string, number][];
-  return entries.map(([name, value]) => ({ name: name.replaceAll('_', ' '), value }));
+const MOVEMENT_ROWS: { key: keyof AverageMonthlyChanges; name: string; color: string }[] = [
+  { key: 'liquid_assets', name: 'Liquid assets', color: SERIES_COLORS.liquid },
+  { key: 'non_liquid_assets', name: 'Non-liquid assets', color: SERIES_COLORS.nonLiquid },
+  { key: 'liabilities', name: 'Liabilities', color: SERIES_COLORS.liabilities },
+  { key: 'net_worth', name: 'Net worth', color: SERIES_COLORS.netWorth },
+];
+
+/** `average_monthly_changes` as labelled bar-chart rows, coloured like the balance sheet series. */
+export function averageMovementRows(averageMonthlyChanges: AverageMonthlyChanges): Segment[] {
+  return MOVEMENT_ROWS.map(({ key, name, color }) => ({ name, value: averageMonthlyChanges[key], color }));
 }

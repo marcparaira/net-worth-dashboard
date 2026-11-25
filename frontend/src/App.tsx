@@ -1,4 +1,3 @@
-import { SegmentedControl } from './components/common';
 import { useHashPage } from './hooks/useHashPage';
 import type { Option } from './lib/constants';
 import { APP_VERSION, versionLabel } from './lib/version';
@@ -13,15 +12,29 @@ const PAGES: readonly Option<Page>[] = [
 ];
 
 export function App() {
-  const [page, setPage] = useHashPage(PAGES);
+  const [page] = useHashPage(PAGES);
 
   return (
-    <main className="app-shell">
-      <nav className="page-nav">
-        <SegmentedControl options={PAGES} value={page} onChange={setPage} />
-      </nav>
-      {page === 'rebalancing' ? <RebalancingPage /> : <DashboardPage />}
-      <footer className="app-footer">Net Worth Dashboard · {versionLabel(APP_VERSION)}</footer>
-    </main>
+    <>
+      <header className="topbar">
+        <div className="topbar-inner">
+          <div className="brand">
+            <span className="brand-mark" aria-hidden="true" />
+            <span>Net Worth</span>
+          </div>
+          <nav className="nav" aria-label="Main">
+            {PAGES.map((item) => (
+              <a key={item.value} href={`#${item.value}`} aria-current={page === item.value ? 'page' : undefined}>
+                {item.label}
+              </a>
+            ))}
+          </nav>
+        </div>
+      </header>
+      <main className="app-shell">
+        {page === 'rebalancing' ? <RebalancingPage /> : <DashboardPage />}
+        <footer className="app-footer">Net Worth Dashboard · {versionLabel(APP_VERSION)}</footer>
+      </main>
+    </>
   );
 }

@@ -1,9 +1,7 @@
 import type { RebalancingBucket, RebalancingHolding, RebalancingPayload, RebalancingReserve } from '../api/types';
-import { PALETTE } from './theme';
+import { NEUTRAL_COLOR, sliceColor } from './theme';
 
-// Reserves (fixed amounts) use warm colours, buckets use the rest of the palette.
-const RESERVE_COLORS = ['#f59e0b', '#f472b6', '#a3e635'];
-const BUCKET_COLORS = PALETTE.filter((color) => !RESERVE_COLORS.includes(color));
+const UNASSIGNED_COLOR = 'var(--color-warning)';
 
 interface SliceExtras {
   /** Name of the parent bucket group, if any. */
@@ -25,13 +23,16 @@ export interface HoldingBreakdown extends RebalancingHolding {
   parts: HoldingPart[];
 }
 
-/** Leaf buckets in display order, each with a colour and the name of its parent group (if any). */
-export function leafBuckets(buckets: RebalancingBucket[]): (RebalancingBucket & SliceExtras)[] {
+/**
+ * Leaf buckets in display order, each with a colour and the name of its parent group (if any).
+ * Colours continue the palette after the reserves (`offset`), so every slice has its own.
+ */
+export function leafBuckets(buckets: RebalancingBucket[], offset = 0): (RebalancingBucket & SliceExtras)[] {
   const result: (RebalancingBucket & SliceExtras)[] = [];
   const walk = (items: RebalancingBucket[], parent: string | null) =>
     items.forEach((bucket) => {
       if (bucket.children.length) walk(bucket.children, bucket.name);
-      else result.push({ ...bucket, parent, color: BUCKET_COLORS[result.length % BUCKET_COLORS.length] });
+      else result.push({ ...bucket, parent, color: sliceColor(offset + result.length) });
     });
   walk(buckets, null);
   return result;
@@ -42,10 +43,10 @@ export function allSlices(data: RebalancingPayload): Slice[] {
   const reserves = data.reserves.map((reserve, index) => ({
     ...reserve,
     parent: null,
-    color: RESERVE_COLORS[index % RESERVE_COLORS.length],
+    color: sliceColor(index),
     isReserve: true,
   }));
-  return [...reserves, ...leafBuckets(data.buckets)];
+  return [...reserves, ...leafBuckets(data.buckets, reserves.length)];
 }
 
 /** Inverse view: each holding with the slices its value was assigned to. */
@@ -65,7 +66,7 @@ export function holdingsBreakdown(
     entry.parts.push({ ...part, amount: holding.amount });
   };
   slices.forEach((slice) => slice.holdings.forEach((h) => add(h, { name: slice.name, color: slice.color })));
-  unassigned.forEach((h) => add(h, { name: 'Unassigned', color: '#fb7185' }));
-  excluded.forEach((h) => add(h, { name: 'Excluded', color: '#4b5a75' }));
+  unassigned.forEach((h) => add(h, { name: 'Unassigned', color: UNASSIGNED_COLOR }));
+  excluded.forEach((h) => add(h, { name: 'Excluded', color: NEUTRAL_COLOR }));
   return [...byId.values()].sort((a, b) => b.amount - a.amount);
 }

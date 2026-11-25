@@ -7,26 +7,35 @@ type Trend = number | null | undefined;
 
 export function Panel({
   title,
-  kicker,
+  description,
+  actions,
   children,
   className = '',
 }: {
   title: string;
-  kicker: string;
+  description?: ReactNode;
+  /** Controls shown at the right of the header, such as a view toggle. */
+  actions?: ReactNode;
   children: ReactNode;
   className?: string;
 }) {
   return (
     <section className={`panel ${className}`}>
-      <header>
+      <header className="panel-header">
         <div>
-          <span>{kicker}</span>
           <h2>{title}</h2>
+          {description ? <p>{description}</p> : null}
         </div>
+        {actions}
       </header>
       {children}
     </section>
   );
+}
+
+/** Small colour square identifying a category or series. */
+export function Swatch({ color }: { color: string }) {
+  return <i className="swatch" style={{ background: color }} aria-hidden="true" />;
 }
 
 export function TrendIcon({ value }: { value: Trend }) {
@@ -91,7 +100,7 @@ export function LegendRow({
 }) {
   return (
     <div className={className}>
-      <i style={{ background: color }} />
+      <i style={{ background: color }} aria-hidden="true" />
       <span>
         {label}
         <small>{note}</small>
@@ -105,13 +114,16 @@ export function SegmentedControl<T extends string>({
   options,
   value,
   onChange,
+  label,
 }: {
   options: readonly Option<T>[];
   value: T;
   onChange: (value: T) => void;
+  /** Accessible name of the group, such as "Allocation view". */
+  label?: string;
 }) {
   return (
-    <div className="segmented">
+    <div className="segmented" role="group" aria-label={label}>
       {options.map((option) => (
         <button
           key={option.value}

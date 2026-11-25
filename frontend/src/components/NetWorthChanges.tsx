@@ -5,7 +5,7 @@ import { Panel, TrendLine } from './common';
 function changeDescription({ change, change_pct: changePct }: NetWorthChange): string {
   if (change == null) return 'Not enough history';
   if (changePct == null) return 'Percentage unavailable (zero baseline)';
-  return `${signedPercent.format(changePct / 100)} change`;
+  return signedPercent.format(changePct / 100);
 }
 
 function PeriodCard({ period }: { period: NetWorthChange }) {
@@ -27,16 +27,15 @@ function PeriodCard({ period }: { period: NetWorthChange }) {
 
 export function NetWorthChanges({ periods }: { periods: NetWorthChange[] }) {
   return (
-    <Panel title="Net worth change" kicker="RECENT GROWTH">
-      <div className="summary-cards period-changes">
+    <Panel
+      title="Net worth change"
+      description="Last month compares with the previous snapshot; 3 months and last year with the latest snapshot on or before that date."
+    >
+      <div className="summary-cards">
         {periods.map((period) => (
           <PeriodCard key={period.months} period={period} />
         ))}
       </div>
-      <p className="footnote">
-        Last month compares with the previous record; 3 months and last year compare with the latest record on or before
-        3 or 12 months before the latest saved date.
-      </p>
     </Panel>
   );
 }

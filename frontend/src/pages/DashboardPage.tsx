@@ -33,9 +33,9 @@ export function DashboardPage() {
 
   return (
     <>
-      <header className="hero">
+      <header className="page-header">
         <h1>Net worth</h1>
-        <p>As of {data.meta.latest_date}</p>
+        <p>Latest snapshot {data.meta.latest_date}</p>
       </header>
 
       <SummaryMetrics
@@ -48,25 +48,25 @@ export function DashboardPage() {
 
       <NetWorthChanges periods={data.net_worth_changes} />
 
-      <div className="two-col even">
+      <div className="two-col">
         <BalanceHistoryChart history={data.history} />
         <CategoryHistoryChart rows={categoryRows.rows} categories={categoryRows.categories} />
       </div>
 
-      <div className="two-col even">
+      <div className="two-col">
         <InvestmentMix
           title="Investment mix"
           segments={mix}
-          note="Immobles at equity value (after subtracting mortgages). Vehicles and Pensions are left out."
+          note="Real estate at equity value; vehicles and pensions left out."
         />
         <InvestmentMix
           title="Available money"
           segments={mix.filter((segment) => segment.name !== CATEGORY.realEstate)}
-          note="How much of the money outside Immobles is invested in Accions versus held as cash and short-term bonds."
+          note="Money outside real estate: invested in stocks or held as cash."
         />
       </div>
 
-      <div className="two-col lower">
+      <div className="two-col">
         <AllocationPanel allocation={data.allocation} categories={categories} totalEquity={assetEquity} />
         <AverageMovementChart averageMonthlyChanges={data.average_monthly_changes} />
       </div>

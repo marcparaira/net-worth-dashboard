@@ -47,6 +47,8 @@ jobs:
       - run: npm run typecheck
       - run: npm test
       - run: npm run build
+      - name: Check design token contrast and colour-blind safety
+        run: python3 ../scripts/check_design_tokens.py
 
   images:
     name: Container images

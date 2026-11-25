@@ -51,13 +51,13 @@ Every pull request merged into `main` produces a versioned release.
 
 The current styling looks generic. Define a design system before new pages are built on it.
 
-- [ ] Define design tokens as CSS custom properties: a colour palette (neutrals, one accent, and semantic colours for gains, losses, and warnings), typography scale, spacing, radii, and shadows.
-- [ ] Choose a colour-blind-safe chart palette, with one consistent colour per category across all charts.
-- [ ] Support light and dark themes, following the system setting.
-- [ ] Restyle the Dashboard and Rebalancing pages with the tokens: calm surfaces, clear hierarchy, and fewer decorative effects (gradients, glows, coloured edge bars, uppercase labels).
-- [ ] Present numbers consistently: tabular figures, right-aligned amounts, and one convention for signs and colours of changes.
-- [ ] Check WCAG AA contrast and visible keyboard focus.
-- [ ] Document the design system in `docs/design/visual-design.md`, with before and after screenshots.
+- [x] Define design tokens as CSS custom properties: a colour palette (neutrals, one accent, and semantic colours for gains, losses, and warnings), typography scale, spacing, radii, and shadows.
+- [x] Choose a colour-blind-safe chart palette, with one consistent colour per category across all charts.
+- [x] Support light and dark themes, following the system setting.
+- [x] Restyle the Dashboard and Rebalancing pages with the tokens: calm surfaces, clear hierarchy, and fewer decorative effects (gradients, glows, coloured edge bars, uppercase labels).
+- [x] Present numbers consistently: tabular figures, right-aligned amounts, and one convention for signs and colours of changes.
+- [x] Check WCAG AA contrast and visible keyboard focus.
+- [x] Document the design system in `docs/design/visual-design.md`, with before and after screenshots.
 
 **Deliverable:** A consistent, professional visual identity, applied to the existing pages and ready for the new ones.
 

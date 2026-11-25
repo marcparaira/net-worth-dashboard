@@ -2,12 +2,17 @@ import { Bar, BarChart, CartesianGrid, Legend, ResponsiveContainer, Tooltip, XAx
 import type { RebalancingBucket, RebalancingPayload } from '../api/types';
 import { euro, formatCompactEuro, formatEuro, signedEuro } from '../lib/format';
 import type { Slice } from '../lib/rebalancing';
-import { axisProps, gridProps, tooltipProps } from '../lib/theme';
+import { axisProps, barCursor, CURRENT_COLOR, gridProps, TARGET_COLOR, tooltipProps } from '../lib/theme';
 import { Panel } from './common';
+
+const legendLabel = (value: string) => <span className="legend-label">{value}</span>;
 
 const ordinal = (n: number): string => ({ 1: 'st', 2: 'nd', 3: 'rd' })[n] ?? 'th';
 
-/** Positive gap = money to add to the bucket, negative = bucket is over its target. */
+/**
+ * Positive gap = money to add to the bucket (accent), negative = over its target (warning).
+ * Gains and losses colours are reserved for changes in value.
+ */
 function GapLabel({ gap }: { gap: number }) {
   if (Math.abs(gap) < 1) return <span className="gap on-target">On target</span>;
   return (
@@ -56,7 +61,7 @@ function TargetRow({
 
 export function TargetsTable({ data }: { data: RebalancingPayload }) {
   return (
-    <Panel title="Target vs current" kicker="ALLOCATION">
+    <Panel title="Target vs current" description="Reserves are filled first, then the pool is split by weight.">
       <div className="holdings-table rebalance-table">
         <div className="table-head rebalance-row">
           <span>Bucket</span>
@@ -69,7 +74,7 @@ export function TargetsTable({ data }: { data: RebalancingPayload }) {
           <div key={reserve.name} className="table-row rebalance-row is-reserve">
             <span className="holding-main">
               <strong>{reserve.name}</strong>
-              <small>Fixed amount · {fillLabel(data.fill_order, reserve.name)}</small>
+              <small>Reserve · fixed amount · {fillLabel(data.fill_order, reserve.name)}</small>
             </span>
             <span className="share">—</span>
             <b>{euro.format(reserve.target)}</b>
@@ -82,8 +87,8 @@ export function TargetsTable({ data }: { data: RebalancingPayload }) {
         ))}
       </div>
       <p className="footnote">
-        Pool to split: {euro.format(data.pool)}, i.e. everything except the fixed-amount reserves and excluded
-        categories. Real estate is counted at equity value (minus its mortgage).
+        Pool to split: {euro.format(data.pool)}, everything except the reserves and excluded categories. Real estate
+        counts at equity value (after its mortgage).
       </p>
     </Panel>
   );
@@ -92,17 +97,17 @@ export function TargetsTable({ data }: { data: RebalancingPayload }) {
 export function TargetsChart({ slices }: { slices: Slice[] }) {
   const rows = slices.map((slice) => ({ name: slice.name, Target: slice.target, Current: slice.current }));
   return (
-    <Panel title="Where the money should be" kicker="TARGETS">
+    <Panel title="Where the money should be" description="Target and current amount of each reserve and bucket.">
       <div className="chart">
         <ResponsiveContainer width="100%" height="100%">
-          <BarChart data={rows} layout="vertical" margin={{ left: 20 }} barGap={2}>
+          <BarChart data={rows} layout="vertical" margin={{ top: 0, right: 8, bottom: 0, left: 0 }} barGap={2}>
             <CartesianGrid {...gridProps} horizontal={false} />
             <XAxis type="number" tickFormatter={formatCompactEuro} {...axisProps} />
-            <YAxis type="category" dataKey="name" width={150} {...axisProps} tick={{ fontSize: 12 }} />
-            <Tooltip formatter={formatEuro} cursor={{ fill: '#ffffff08' }} {...tooltipProps} />
-            <Legend wrapperStyle={{ fontSize: 12 }} />
-            <Bar dataKey="Target" fill="#3b4d6e" radius={[0, 6, 6, 0]} />
-            <Bar dataKey="Current" fill="#5eead4" radius={[0, 6, 6, 0]} />
+            <YAxis type="category" dataKey="name" width={140} {...axisProps} axisLine={false} />
+            <Tooltip formatter={formatEuro} cursor={barCursor} {...tooltipProps} />
+            <Legend iconType="square" iconSize={10} formatter={legendLabel} />
+            <Bar dataKey="Target" fill={TARGET_COLOR} radius={3} barSize={12} isAnimationActive={false} />
+            <Bar dataKey="Current" fill={CURRENT_COLOR} radius={3} barSize={12} isAnimationActive={false} />
           </BarChart>
         </ResponsiveContainer>
       </div>

@@ -44,7 +44,7 @@ podman compose up --build   # add -d to run in the background
 
 | Service | URL | Notes |
 |---|---|---|
-| Web app | http://localhost:5173 | Vite dev server, hot reload |
+| Web app | http://localhost:5173 | Vite dev server, hot reload; reinstalls dependencies on start when `package-lock.json` changed |
 | API | http://localhost:8000 | uvicorn with `--reload`; data mounted read-only at `/data` |
 | PostgreSQL | localhost:5432 | Used from Phase 5; user, password and database: `networth` |
 
@@ -117,7 +117,13 @@ cd frontend
 npm run check                     # lint, format check, type check and tests
 npm run format                    # format
 npm run build                     # production build
+
+# Design tokens, from the project root: contrast and colour-blind safety
+python3 scripts/check_design_tokens.py
 ```
+
+The visual design system (tokens, chart colours, number conventions) is documented in
+[docs/design/visual-design.md](docs/design/visual-design.md).
 
 Secrets and personal data are blocked by [gitleaks](https://github.com/gitleaks/gitleaks),
 configured in `.gitleaks.toml`: its default secret rules plus rules for record files

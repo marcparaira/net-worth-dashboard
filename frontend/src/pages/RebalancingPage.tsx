@@ -32,9 +32,9 @@ export function RebalancingPage() {
 
   return (
     <>
-      <header className="hero">
+      <header className="page-header">
         <h1>Rebalancing</h1>
-        <p>As of {data.latest_date} · targets from rebalancing.json in the data directory</p>
+        <p>Latest snapshot {data.latest_date} · targets from rebalancing.json</p>
       </header>
 
       <div className="summary-cards rebalance-summary">
@@ -45,12 +45,12 @@ export function RebalancingPage() {
         </div>
         <div className="summary-card">
           <span>Most underweight</span>
-          <strong className="positive">{mostUnder ? euro.format(mostUnder.gap) : '—'}</strong>
+          <strong className="accent">{mostUnder ? euro.format(mostUnder.gap) : '—'}</strong>
           <small>{mostUnder ? `to add to ${mostUnder.name}` : 'Every bucket is at or above target'}</small>
         </div>
         <div className="summary-card">
           <span>Most overweight</span>
-          <strong className="negative">{mostOver ? euro.format(-mostOver.gap) : '—'}</strong>
+          <strong className="warning">{mostOver ? euro.format(-mostOver.gap) : '—'}</strong>
           <small>{mostOver ? `over target in ${mostOver.name}` : 'No bucket is over target'}</small>
         </div>
       </div>
@@ -66,7 +66,7 @@ export function RebalancingPage() {
         </div>
       ) : null}
 
-      <div className="two-col even">
+      <div className="two-col wide-first">
         <TargetsTable data={data} />
         <TargetsChart slices={slices} />
       </div>

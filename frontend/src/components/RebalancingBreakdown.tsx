@@ -1,9 +1,10 @@
-import { useState, type CSSProperties } from 'react';
+import { useState } from 'react';
 import type { RebalancingHolding } from '../api/types';
 import type { Option } from '../lib/constants';
 import { euro } from '../lib/format';
 import type { HoldingBreakdown, Slice } from '../lib/rebalancing';
-import { LegendRow, Panel, SegmentedControl } from './common';
+import { NEUTRAL_COLOR } from '../lib/theme';
+import { LegendRow, Panel, SegmentedControl, Swatch } from './common';
 
 type View = 'bucket' | 'holding';
 
@@ -17,10 +18,13 @@ type SliceSummary = Pick<Slice, 'name' | 'parent' | 'color' | 'holdings' | 'curr
 
 function SliceCard({ slice }: { slice: SliceSummary }) {
   return (
-    <div className="slice-card" style={{ '--accent': slice.color } as CSSProperties}>
+    <div className="slice-card">
       <header>
         <span>{slice.parent ?? (slice.isReserve ? 'Reserve' : 'Bucket')}</span>
-        <strong>{slice.name}</strong>
+        <strong>
+          <Swatch color={slice.color} />
+          {slice.name}
+        </strong>
         <b>{euro.format(slice.current)}</b>
       </header>
       <div className="allocation-list">
@@ -78,10 +82,11 @@ export function RebalancingBreakdown({
 }) {
   const [view, setView] = useState<View>('bucket');
   return (
-    <Panel title="What counts as what" kicker="BREAKDOWN">
-      <div className="allocation-toolbar">
-        <SegmentedControl options={VIEWS} value={view} onChange={setView} />
-      </div>
+    <Panel
+      title="What counts as what"
+      description="How each holding is assigned to reserves and buckets."
+      actions={<SegmentedControl options={VIEWS} value={view} onChange={setView} label="Breakdown view" />}
+    >
       {view === 'bucket' ? (
         <div className="slice-grid">
           {slices.map((slice) => (
@@ -92,7 +97,7 @@ export function RebalancingBreakdown({
               slice={{
                 name: 'Excluded',
                 parent: 'Not part of the plan',
-                color: '#4b5a75',
+                color: NEUTRAL_COLOR,
                 holdings: excluded,
                 current: excluded.reduce((sum, h) => sum + h.amount, 0),
               }}

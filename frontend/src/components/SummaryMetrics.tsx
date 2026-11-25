@@ -1,6 +1,6 @@
 import type { Meta, RateBasis, Summary } from '../api/types';
 import { RATE_BASIS_OPTIONS } from '../lib/constants';
-import { euro, signedEuro } from '../lib/format';
+import { signedEuro } from '../lib/format';
 import { MetricCard } from './common';
 
 function yearOverYearText(change: number | null): string {
@@ -8,7 +8,7 @@ function yearOverYearText(change: number | null): string {
 }
 
 function yearToDateText(change: number | null): string {
-  return change !== null ? `${change >= 0 ? '+' : ''}${euro.format(change)} year to date` : '';
+  return change !== null ? `${signedEuro.format(change)} year to date` : '';
 }
 
 export function SummaryMetrics({

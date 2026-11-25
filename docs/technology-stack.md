@@ -20,6 +20,8 @@ evaluations. System architecture is documented separately.
 | Frontend | React, Vite | Selected |
 | Frontend Language | TypeScript 6.0 (7.0 once typescript-eslint supports it) | Selected |
 | Charts | Recharts | Selected |
+| Styling | Plain CSS with design tokens (CSS custom properties), light and dark themes | Selected |
+| Typography | Inter (variable), self-hosted through Fontsource | Selected |
 | Icons | Lucide | Selected |
 | Frontend Development Container | Node.js running the Vite dev server (local only) | Selected |
 | Backend | Python, FastAPI | Selected |
