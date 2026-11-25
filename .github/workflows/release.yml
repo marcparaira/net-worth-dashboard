@@ -1,0 +1,75 @@
+name: Release
+
+# Every push to main (a squash-merged PR) creates a release: semantic-release derives the
+# version from the commit, tags it and publishes the GitHub Release; then the API image and
+# the frontend build are published for that version. Re-run manually to retry artifacts.
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+  packages: write
+
+jobs:
+  release:
+    name: Release
+    runs-on: ubuntu-24.04
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      IMAGE: ghcr.io/${{ github.repository }}/api
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "26"
+
+      - name: Create the release
+        run: >
+          npx --yes
+          -p semantic-release@26.0.1
+          -p conventional-changelog-conventionalcommits@10.4.1
+          semantic-release
+
+      - name: Read the released version
+        id: version
+        run: |
+          git fetch --tags --force
+          tag=$(git tag --points-at HEAD --list 'v*' | sort -V | tail -n 1)
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+          echo "version=${tag#v}" >> "$GITHUB_OUTPUT"
+          echo "Released: ${tag:-nothing}"
+
+      - name: Publish the API image
+        if: steps.version.outputs.tag != ''
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          echo "$GITHUB_TOKEN" | podman login ghcr.io -u "${{ github.actor }}" --password-stdin
+          podman build -f backend/Containerfile --target runtime \
+            --build-arg APP_VERSION="$VERSION" \
+            --label org.opencontainers.image.source="${{ github.server_url }}/${{ github.repository }}" \
+            --label org.opencontainers.image.version="$VERSION" \
+            -t "$IMAGE:$VERSION" -t "$IMAGE:latest" .
+          podman push "$IMAGE:$VERSION"
+          podman push "$IMAGE:latest"
+
+      - name: Attach the frontend build
+        if: steps.version.outputs.tag != ''
+        working-directory: frontend
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+          TAG: ${{ steps.version.outputs.tag }}
+        run: |
+          npm ci
+          VITE_APP_VERSION="$VERSION" npm run build
+          tar -czf "net-worth-dashboard-frontend-$VERSION.tar.gz" -C dist .
+          gh release upload "$TAG" "net-worth-dashboard-frontend-$VERSION.tar.gz" --clobber

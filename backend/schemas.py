@@ -1,9 +1,15 @@
 """Shapes of the JSON returned by the API."""
+
 from __future__ import annotations
 
 from typing import TypedDict
 
 from .config import RateBasis
+
+
+class Health(TypedDict):
+    status: str
+    version: str
 
 
 class Meta(TypedDict):

@@ -1,15 +1,16 @@
 """FastAPI entry point: ``uvicorn backend.app:app``."""
+
 from __future__ import annotations
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from .config import CORS_ORIGINS, RateBasis
+from .config import APP_VERSION, CORS_ORIGINS, RateBasis
 from .dashboard import calculate_payload
 from .rebalancing import calculate_rebalancing
-from .schemas import DashboardPayload, RebalancingPayload
+from .schemas import DashboardPayload, Health, RebalancingPayload
 
-app = FastAPI(title="Net Worth Dashboard API", version="1.0.0")
+app = FastAPI(title="Net Worth Dashboard API", version=APP_VERSION)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=CORS_ORIGINS,
@@ -30,5 +31,5 @@ def rebalancing() -> RebalancingPayload:
 
 
 @app.get("/api/health")
-def health() -> dict[str, str]:
-    return {"status": "ok"}
+def health() -> Health:
+    return {"status": "ok", "version": APP_VERSION}

@@ -4,3 +4,12 @@ __pycache__/
 node_modules/
 dist/
 .env
+.env.*
+!.env.example
+
+# Personal financial data (never commit). It belongs in NET_WORTH_DATA_DIR,
+# outside the repository; these entries guard against old locations.
+backend/records/
+backend/rebalancing.json
+actualitzacio-immobles.md
+data/

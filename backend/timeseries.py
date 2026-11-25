@@ -1,8 +1,10 @@
 """Calendar arithmetic and small numeric helpers over dated snapshots."""
+
 from __future__ import annotations
 
 import calendar
 from datetime import date
+from itertools import pairwise
 
 from .ledger import Snapshot, Totals
 
@@ -54,4 +56,4 @@ def mean(values: list[float]) -> float:
 
 
 def diffs(values: list[float]) -> list[float]:
-    return [b - a for a, b in zip(values, values[1:])]
+    return [b - a for a, b in pairwise(values)]

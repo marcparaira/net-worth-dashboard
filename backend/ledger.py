@@ -1,7 +1,8 @@
 """Turns raw records into dated balance-sheet totals and per-holding rows."""
+
 from __future__ import annotations
 
-from dataclasses import dataclass, fields
+from dataclasses import dataclass
 from datetime import date
 
 from .config import EXCLUDED_CATEGORY, LIABILITY_CATEGORY
@@ -18,10 +19,17 @@ class Totals:
 
     def lerp(self, other: Totals, t: float) -> Totals:
         """Linear interpolation of every field, ``t=0`` gives ``self`` and ``t=1`` gives ``other``."""
-        return Totals(**{
-            field.name: getattr(self, field.name) + (getattr(other, field.name) - getattr(self, field.name)) * t
-            for field in fields(self)
-        })
+
+        def mix(start: float, end: float) -> float:
+            return start + (end - start) * t
+
+        return Totals(
+            liquid_assets=mix(self.liquid_assets, other.liquid_assets),
+            non_liquid_assets=mix(self.non_liquid_assets, other.non_liquid_assets),
+            liabilities=mix(self.liabilities, other.liabilities),
+            net_worth=mix(self.net_worth, other.net_worth),
+            disposable_net_value=mix(self.disposable_net_value, other.disposable_net_value),
+        )
 
 
 @dataclass(frozen=True)
@@ -116,5 +124,7 @@ def record_rows(record: Record) -> list[HoldingRow]:
 def process_records(records: list[Record]) -> tuple[list[Snapshot], list[HoldingRow]]:
     """Snapshots sorted by date and holding rows sorted by (date, category, name)."""
     snapshots = sorted((Snapshot(record.date, record_totals(record)) for record in records), key=lambda s: s.date)
-    rows = sorted((row for record in records for row in record_rows(record)), key=lambda h: (h.date, h.category, h.name))
+    rows = sorted(
+        (row for record in records for row in record_rows(record)), key=lambda h: (h.date, h.category, h.name)
+    )
     return snapshots, rows

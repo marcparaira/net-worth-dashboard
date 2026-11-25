@@ -1,0 +1,70 @@
+# Local development environment: `podman compose up --build`.
+#   Web app:    http://localhost:5173 (Vite dev server, hot reload)
+#   API:        http://localhost:8000 (uvicorn --reload)
+#   PostgreSQL: localhost:5432 (used from Phase 5)
+# Settings come from .env (see .env.example): NET_WORTH_DATA_DIR (default sample-data/)
+# and WEB_PORT, API_PORT, DB_PORT to change the host ports. Ports bind to localhost only.
+name: net-worth-dashboard
+
+services:
+  db:
+    image: docker.io/library/postgres:17-alpine
+    environment:
+      POSTGRES_DB: networth
+      POSTGRES_USER: networth
+      POSTGRES_PASSWORD: networth # local development only
+    ports:
+      - "127.0.0.1:${DB_PORT:-5432}:5432"
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U networth -d networth"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  api:
+    build:
+      context: .
+      dockerfile: backend/Containerfile
+      target: runtime
+    command: ["uvicorn", "backend.app:app", "--host", "0.0.0.0", "--port", "8000", "--reload", "--reload-dir", "backend"]
+    environment:
+      NET_WORTH_DATA_DIR: /data
+    volumes:
+      - ./backend:/app/backend:ro
+      - ${NET_WORTH_DATA_DIR:-./sample-data}:/data:ro
+    ports:
+      - "127.0.0.1:${API_PORT:-8000}:8000"
+    depends_on:
+      - db
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O /dev/null http://127.0.0.1:8000/api/health || exit 1"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+  web:
+    build:
+      context: ./frontend
+      target: dev
+    environment:
+      API_PROXY_TARGET: http://api:8000
+    volumes:
+      - ./frontend:/app
+      - web-node-modules:/app/node_modules
+    # Run as the host user, so files in the bind-mounted source keep their owner.
+    userns_mode: keep-id
+    ports:
+      - "127.0.0.1:${WEB_PORT:-5173}:5173"
+    depends_on:
+      - api
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O /dev/null http://127.0.0.1:5173/ || exit 1"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+volumes:
+  db-data:
+  web-node-modules:

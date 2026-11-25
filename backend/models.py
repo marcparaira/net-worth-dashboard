@@ -1,4 +1,5 @@
 """Typed schema for the dated balance snapshots stored as YAML records."""
+
 from __future__ import annotations
 
 from datetime import date

@@ -1,4 +1,5 @@
 """Builds the dashboard payload from processed records, one section at a time."""
+
 from __future__ import annotations
 
 from .config import EXCLUDED_CATEGORY, RateBasis
@@ -73,14 +74,16 @@ def net_worth_changes(snapshots: list[Snapshot]) -> list[NetWorthChange]:
             baseline = baseline_before(snapshots, subtract_months(latest.date, months))
         previous = baseline.totals.net_worth if baseline else None
         change = current - previous if previous is not None else None
-        periods.append({
-            "months": months,
-            "label": label,
-            "baseline_date": baseline.date.isoformat() if baseline else None,
-            "latest_date": latest.date.isoformat(),
-            "change": optional_money(change),
-            "change_pct": round(change / abs(previous) * 100, 2) if previous and change is not None else None,
-        })
+        periods.append(
+            {
+                "months": months,
+                "label": label,
+                "baseline_date": baseline.date.isoformat() if baseline else None,
+                "latest_date": latest.date.isoformat(),
+                "change": optional_money(change),
+                "change_pct": round(change / abs(previous) * 100, 2) if previous and change is not None else None,
+            }
+        )
     return periods
 
 

@@ -23,3 +23,26 @@ build-backend = "poetry.core.masonry.api"
 venvPath = "."
 venv = ".venv"
 
+include = ["backend"]
+pythonVersion = "3.13"
+
+[tool.ruff]
+line-length = 120
+target-version = "py313"
+extend-exclude = ["frontend"]
+
+[tool.ruff.lint]
+# Defaults plus import sorting, bug-prone patterns, pyupgrade and simplifications.
+extend-select = ["I", "B", "UP", "SIM", "RUF"]
+# Pydantic models copy mutable defaults, so class-level list defaults are safe.
+ignore = ["RUF012"]
+
+[tool.ruff.format]
+# The code base mixes single and double quotes; keep them as written.
+quote-style = "preserve"
+
+[tool.pytest.ini_options]
+testpaths = ["backend/tests"]
+pythonpath = ["."]
+# anyio (via FastAPI) registers a plugin that uses a deprecated pytest API; no async tests need it.
+addopts = "-p no:anyio"
