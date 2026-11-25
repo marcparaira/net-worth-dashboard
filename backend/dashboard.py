@@ -5,7 +5,6 @@ from __future__ import annotations
 from .config import EXCLUDED_CATEGORY, RateBasis
 from .ledger import HoldingRow, Snapshot, Totals, process_records
 from .models import Record
-from .records import load_records
 from .schemas import (
     AllocationItem,
     AssetHistoryItem,
@@ -182,8 +181,3 @@ def build_dashboard(records: list[Record], rate_basis: RateBasis = "last_year") 
         "latest_holdings": latest_holdings(latest_rows),
         "asset_history": asset_history(rows),
     }
-
-
-def calculate_payload(rate_basis: RateBasis = "last_year") -> DashboardPayload:
-    """Dashboard built from the records saved on disk."""
-    return build_dashboard(load_records(), rate_basis)

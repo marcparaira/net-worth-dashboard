@@ -14,6 +14,21 @@ jobs:
   backend:
     name: Backend (lint, format, types, tests)
     runs-on: ubuntu-24.04
+    # Database tests run against a real PostgreSQL, the same major version as production.
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: networth
+          POSTGRES_PASSWORD: networth
+          POSTGRES_DB: networth_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U networth -d networth_test"
+          --health-interval 5s --health-timeout 3s --health-retries 10
+    env:
+      TEST_DATABASE_URL: postgresql+psycopg://networth:networth@localhost:5432/networth_test
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-python@v7
@@ -27,6 +42,10 @@ jobs:
       - run: .venv/bin/ruff format --check .
       - run: .venv/bin/basedpyright
       - run: .venv/bin/pytest
+      - name: Check that the migrations match the models
+        run: .venv/bin/alembic -c backend/alembic.ini check
+        env:
+          DATABASE_URL: postgresql+psycopg://networth:networth@localhost:5432/networth_test
 
   frontend:
     name: Frontend (lint, format, types, tests, build)
@@ -61,9 +80,17 @@ jobs:
         run: |
           podman build --target dev -t net-worth-web frontend
           podman build --target build frontend
-      - name: Smoke-test the API image with the sample data
+      - name: Smoke-test the API image with PostgreSQL and the sample data
+        env:
+          DATABASE_URL: postgresql+psycopg://networth:networth@localhost:5432/networth
         run: |
-          podman run -d --name api -p 8000:8000 net-worth-api
+          # A pod shares localhost between the database and the API containers.
+          podman pod create --name smoke -p 8000:8000
+          podman run -d --pod smoke --name db -e POSTGRES_USER=networth -e POSTGRES_PASSWORD=networth \
+            -e POSTGRES_DB=networth docker.io/library/postgres:17-alpine
+          podman run --rm --pod smoke -e DATABASE_URL net-worth-api python -m backend.migrate
+          podman run --rm --pod smoke -e DATABASE_URL net-worth-api python -m backend.importer
+          podman run -d --pod smoke --name api -e DATABASE_URL net-worth-api
           curl -sf --retry 20 --retry-delay 1 --retry-all-errors http://127.0.0.1:8000/api/health
           curl -sf http://127.0.0.1:8000/api/dashboard > /dev/null
           curl -sf http://127.0.0.1:8000/api/rebalancing > /dev/null

@@ -1,7 +1,8 @@
 # Local development environment: `podman compose up --build`.
 #   Web app:    http://localhost:5173 (Vite dev server, hot reload)
 #   API:        http://localhost:8000 (uvicorn --reload)
-#   PostgreSQL: localhost:5432 (used from Phase 5)
+#   PostgreSQL: localhost:5432 (the API's storage; import records with
+#               podman compose exec api python -m backend.importer)
 # Settings come from .env (see .env.example): NET_WORTH_DATA_DIR (default sample-data/)
 # and WEB_PORT, API_PORT, DB_PORT to change the host ports. Ports bind to localhost only.
 name: net-worth-dashboard
@@ -28,8 +29,14 @@ services:
       context: .
       dockerfile: backend/Containerfile
       target: runtime
-    command: ["uvicorn", "backend.app:app", "--host", "0.0.0.0", "--port", "8000", "--reload", "--reload-dir", "backend"]
+    # Bring the schema up to date (waits for the database), then serve with reload.
+    command:
+      - sh
+      - -c
+      - python -m backend.migrate && exec uvicorn backend.app:app --host 0.0.0.0 --port 8000 --reload --reload-dir backend
     environment:
+      DATABASE_URL: postgresql+psycopg://networth:networth@db:5432/networth
+      # Records to import with: podman compose exec api python -m backend.importer
       NET_WORTH_DATA_DIR: /data
     volumes:
       - ./backend:/app/backend:ro

@@ -28,7 +28,8 @@ evaluations. System architecture is documented separately.
 | Validation and API Schemas | Pydantic | Selected |
 | Backend Container Runtime | Python 3.13 on Alpine Linux | Selected |
 | Database | PostgreSQL 17 (same major version locally and in production) | Selected |
-| ORM and Migrations | SQLAlchemy, Alembic | Selected |
+| ORM and Migrations | SQLAlchemy 2, Alembic | Selected |
+| Database Driver | psycopg 3 | Selected |
 | Authentication | Amazon Cognito (or a self-hosted alternative for local development) | Proposed |
 | Internationalization | i18next (Catalan, English) | Proposed |
 | Backend Tests | pytest (running the existing unittest tests) | Selected |

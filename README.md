@@ -4,24 +4,33 @@ A React + Python dashboard built from dated YAML records of your assets and liab
 
 ## Your data
 
-The app reads its data from a data directory:
+The app stores its data in PostgreSQL. You load it by importing a data directory of YAML
+records:
 
 ```
 <data directory>/
 ├── records/            one YAML file per dated snapshot
-└── rebalancing.json    rebalancing targets
+└── rebalancing.json    rebalancing targets (optional)
 ```
 
-By default it uses `sample-data/`, a fictitious dataset committed with the code. To use
-your own data, keep it **outside the repository** and point `NET_WORTH_DATA_DIR` at it:
+`sample-data/` is a fictitious data directory committed with the code. Keep your own
+data **outside the repository** and point `NET_WORTH_DATA_DIR` at it:
 
 ```bash
 cp .env.example .env   # then edit NET_WORTH_DATA_DIR
 ```
 
-`run-dev.sh` loads `.env` automatically; when running uvicorn yourself, export the
-variable first. Never commit personal data: `.env` and the old data locations are
-ignored, and gitleaks checks every commit (see below).
+Import it once the database is running (see **Run locally**):
+
+```bash
+podman compose exec api python -m backend.importer             # imports NET_WORTH_DATA_DIR
+podman compose exec api python -m backend.importer --replace   # deletes your data and re-imports
+```
+
+The import runs in one transaction and refuses data it cannot store faithfully: a
+holding whose name, category or liquidity changes between records, two records with the
+same date, or amounts with more than two decimals. Never commit personal data: `.env`
+and the old data locations are ignored, and gitleaks checks every commit (see below).
 
 ## Features
 
@@ -46,7 +55,7 @@ podman compose up --build   # add -d to run in the background
 |---|---|---|
 | Web app | http://localhost:5173 | Vite dev server, hot reload; reinstalls dependencies on start when `package-lock.json` changed |
 | API | http://localhost:8000 | uvicorn with `--reload`; data mounted read-only at `/data` |
-| PostgreSQL | localhost:5432 | Used from Phase 5; user, password and database: `networth` |
+| PostgreSQL | localhost:5432 | The API's storage; user, password and database: `networth`. The API applies migrations on start |
 
 Ports bind to localhost only; change them with `WEB_PORT`, `API_PORT` and `DB_PORT` in
 `.env`. Other useful commands:
@@ -57,6 +66,11 @@ podman compose logs -f api        # follow one service's logs
 podman compose down               # stop (add -v to also delete the database volume)
 ```
 
+After changing a Containerfile or dependencies, recreate the whole stack with
+`podman compose down && podman compose up -d --build`. podman-compose 1.0.6 links the
+containers to each other, so rebuilding a single service (`up --build api`) cannot replace
+its container and silently restarts the old one.
+
 ### On the host
 
 Requires Python 3.13 and Node.js 24.
@@ -65,20 +79,25 @@ Requires Python 3.13 and Node.js 24.
 python3.13 -m venv .venv
 .venv/bin/pip install -r backend/requirements-dev.txt
 npm --prefix frontend install
-./run-dev.sh                      # API on :8000 and web app on :5173; Ctrl+C stops both
+podman compose up -d db           # PostgreSQL, on DB_PORT from .env (default 5432)
+./run-dev.sh                      # migrations, then API on :8000 and web app on :5173; Ctrl+C stops both
+.venv/bin/python -m backend.importer   # once: import NET_WORTH_DATA_DIR
 ```
 
 `run-dev.sh` loads `.env`, uses `backend/.venv` or `.venv`, and stops both servers when either exits.
+On the host, the API connects to `localhost:$DB_PORT`; set `DATABASE_URL` to use another database.
 
 ## API
 
 - `GET /api/dashboard?rate_basis=last_year`: balance sheet summary, history,
-  allocation and holdings from the YAML records in `<data directory>/records/`.
+  allocation and holdings from the snapshots in the database.
   `rate_basis` (`last_year` or `overall`) selects the historical monthly
   disposable-growth metric.
 
-- `GET /api/rebalancing`: target allocation of the latest record, configured in
-  `<data directory>/rebalancing.json` (see below).
+- `GET /api/rebalancing`: target allocation of the latest snapshot, from the
+  rebalancing settings imported from `rebalancing.json` (see below).
+
+Both return 404 with an explanation when nothing has been imported yet.
 
 ## Rebalancing
 
@@ -110,7 +129,7 @@ The same checks run in CI (`.github/workflows/ci.yml`) on every push. Tests use
 .venv/bin/ruff check .            # lint
 .venv/bin/ruff format .           # format (use --check to only verify)
 .venv/bin/basedpyright            # type check
-.venv/bin/pytest                  # tests
+.venv/bin/pytest                  # tests; database tests need TEST_DATABASE_URL (below)
 
 # Frontend
 cd frontend
@@ -124,6 +143,22 @@ python3 scripts/check_design_tokens.py
 
 The visual design system (tokens, chart colours, number conventions) is documented in
 [docs/design/visual-design.md](docs/design/visual-design.md).
+
+Database tests run against a real PostgreSQL and are skipped unless `TEST_DATABASE_URL`
+points at a database whose name ends in `_test` (it is created if missing and **wiped** on
+every run). With the compose database:
+
+```bash
+export TEST_DATABASE_URL=postgresql+psycopg://networth:networth@localhost:5432/networth_test
+.venv/bin/pytest
+```
+
+Schema changes: edit `backend/db_models.py`, then generate and review a migration:
+
+```bash
+.venv/bin/alembic -c backend/alembic.ini revision --autogenerate -m "describe the change"
+.venv/bin/alembic -c backend/alembic.ini check    # models and migrations match
+```
 
 Secrets and personal data are blocked by [gitleaks](https://github.com/gitleaks/gitleaks),
 configured in `.gitleaks.toml`: its default secret rules plus rules for record files
@@ -152,7 +187,12 @@ Backend (`backend/`):
 - `app.py`: FastAPI app and routes (thin)
 - `config.py`: data directory (`NET_WORTH_DATA_DIR`), CORS origins, category constants
 - `models.py`: Pydantic schema of the YAML records
-- `records.py`: loads and validates the YAML files
+- `records.py`: loads and validates the YAML files (used by the import command)
+- `db_models.py`: database schema; `migrations/`: Alembic migrations generated from it
+- `db.py`: engine and sessions (`DATABASE_URL`, `DATABASE_POOL`)
+- `repository.py`: database reads, scoped to a user, rebuilding the analytics models
+- `importer.py`: `python -m backend.importer`, YAML records into the database
+- `migrate.py`: `python -m backend.migrate`, waits for the database and applies migrations
 - `ledger.py`: per-record totals (`Totals`, `Snapshot`) and per-holding rows
 - `timeseries.py`: month arithmetic, monthly interpolation, small numeric helpers
 - `dashboard.py`: builds each section of the API payload

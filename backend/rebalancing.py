@@ -29,7 +29,6 @@ from pydantic import Field, model_validator
 from .config import REBALANCING_CONFIG
 from .ledger import HoldingRow, process_records
 from .models import Record, StrictModel
-from .records import load_records
 from .schemas import (
     RebalancingBucket,
     RebalancingHolding,
@@ -260,8 +259,3 @@ def build_rebalancing(records: list[Record], config: RebalancingConfig) -> Rebal
         "excluded": [holding_entry(r, r.equity_value) for r in excluded],
         "unassigned": unassigned,
     }
-
-
-def calculate_rebalancing() -> RebalancingPayload:
-    """Rebalancing built from the records and config saved on disk."""
-    return build_rebalancing(load_records(), load_config())

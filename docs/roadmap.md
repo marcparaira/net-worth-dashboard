@@ -65,12 +65,12 @@ The current styling looks generic. Define a design system before new pages are b
 
 **Data flow:** UI → FastAPI → PostgreSQL → Analytics → Dashboard
 
-- [ ] Design the schema for users, holdings, snapshots, snapshot values, liabilities, categories, and rebalancing settings (buckets, reserves, members), with an owner on every row.
-- [ ] Store amounts as exact decimals.
-- [ ] Add database migrations.
-- [ ] Replace the YAML and `rebalancing.json` loaders with a database repository layer, keeping the existing analytics unchanged.
-- [ ] Add a command that imports YAML records and `rebalancing.json` into the database.
-- [ ] Run the tests against a real PostgreSQL instance.
+- [x] Design the schema for users, holdings, snapshots, snapshot values, liabilities, categories, and rebalancing settings (buckets, reserves, members), with an owner on every row.
+- [x] Store amounts as exact decimals.
+- [x] Add database migrations.
+- [x] Replace the YAML and `rebalancing.json` loaders with a database repository layer, keeping the existing analytics unchanged.
+- [x] Add a command that imports YAML records and `rebalancing.json` into the database.
+- [x] Run the tests against a real PostgreSQL instance.
 
 **Deliverable:** Dashboard and rebalancing served from the database, with identical results to the YAML and JSON version.
 
