@@ -1,0 +1,102 @@
+# Development Roadmap
+
+## Phase 0 — Prototype
+
+- [x] Scaffold React/Vite and Python/FastAPI applications.
+- [x] Load and validate dated snapshots from YAML records.
+- [x] Display summary metrics, history, allocation, holdings, and average monthly movement.
+- [x] Add the rebalancing view, configured from `rebalancing.json`.
+- [x] Add backend unit tests and a combined development script.
+
+**Deliverable:** Working single-user dashboard backed by YAML files.
+
+## Phase 1 — Repository Privacy
+
+Personal financial data is currently committed. Remove it before the
+repository is published anywhere.
+
+- [ ] Move `backend/records/`, `backend/rebalancing.json`, and other personal notes to a local data directory outside version control.
+- [ ] Make the data directory configurable through an environment variable.
+- [ ] Add the data directory and `.env` files to `.gitignore`.
+- [ ] Create a fictitious sample dataset and point tests and the default configuration at it.
+- [ ] Remove personal data from the git history (rewrite it with `git filter-repo`, or start a new history) before adding a remote.
+- [ ] Add secret and personal-data scanning (for example gitleaks) as a pre-commit hook and in CI.
+
+**Deliverable:** Repository that can be made public without exposing personal data.
+
+## Phase 2 — Project Foundation
+
+- [ ] Create a multi-stage Podman Containerfile for the API, and a development Containerfile for the web application running the Vite dev server.
+- [ ] Add a `compose.yaml` that runs the web application (Vite dev server with hot reload), API, and PostgreSQL with `podman compose up --build`.
+- [ ] Migrate the frontend to TypeScript and pin dependency versions.
+- [ ] Set up linting, formatting, type checking, and tests for backend and frontend.
+- [ ] Set up GitHub Actions CI to lint, test, and build the images.
+- [ ] Document the local development commands.
+
+**Deliverable:** One-command local environment with healthy services.
+
+## Phase 3 — Database Storage
+
+**Data flow:** UI → FastAPI → PostgreSQL → Analytics → Dashboard
+
+- [ ] Design the schema for users, holdings, snapshots, snapshot values, liabilities, categories, and rebalancing settings (buckets, reserves, members), with an owner on every row.
+- [ ] Store amounts as exact decimals.
+- [ ] Add database migrations.
+- [ ] Replace the YAML and `rebalancing.json` loaders with a database repository layer, keeping the existing analytics unchanged.
+- [ ] Add a command that imports YAML records and `rebalancing.json` into the database.
+- [ ] Run the tests against a real PostgreSQL instance.
+
+**Deliverable:** Dashboard and rebalancing served from the database, with identical results to the YAML and JSON version.
+
+## Phase 4 — Data Entry from the UI
+
+- [ ] Add API endpoints to create, update, and delete snapshots, holdings, and liabilities.
+- [ ] Add a "New snapshot" form, pre-filled from the latest snapshot.
+- [ ] Let users add, rename, recategorize, and close holdings, and link mortgages to properties.
+- [ ] Validate input on client and server, with clear error messages.
+- [ ] Add a snapshot list with edit and delete actions.
+
+**Deliverable:** All financial data managed from the UI, with no file editing.
+
+## Phase 5 — Rebalancing Settings
+
+- [ ] Add API endpoints to read and replace the rebalancing settings in one transaction, with validation.
+- [ ] Add an editor for buckets, weights, reserves, excluded categories, and fill order.
+- [ ] Manage categories, including the categories excluded from disposable net value.
+- [ ] Preview the effect of a change before saving it.
+
+**Deliverable:** Rebalancing fully configurable from the UI.
+
+## Phase 6 — Accounts and Multi-User
+
+- [ ] Add sign-up, sign-in, sign-out, and password reset.
+- [ ] Protect all API endpoints and scope every query to the signed-in user.
+- [ ] Add tests that verify one user cannot access another user's data.
+- [ ] Add data export (JSON and CSV) and account deletion.
+- [ ] Add self-service import of YAML and CSV files.
+
+**Deliverable:** Multiple users with isolated, exportable, and deletable data.
+
+## Phase 7 — Usability and Localization
+
+- [ ] Translate the UI into Catalan, Spanish, and English, with locale-aware formats.
+- [ ] Make the snapshot form and dashboard usable on mobile.
+- [ ] Add revaluation reminders for rarely updated holdings, such as properties.
+- [ ] Add an empty-state onboarding flow for new users, with optional demo data.
+
+**Deliverable:** First complete MVP, usable by people other than the author.
+
+## Phase 8 — AWS Deployment
+
+- [ ] Provision infrastructure using AWS CDK.
+- [ ] Deploy the API to Lambda behind an API Gateway HTTP API, in private subnets without a NAT gateway, using IAM database authentication.
+- [ ] Provision Aurora Serverless v2 (PostgreSQL) with a minimum of 0 ACU, and apply the Alembic migrations.
+- [ ] Run the migrations and integration tests against Aurora to confirm compatibility with the local PostgreSQL.
+- [ ] Build and publish the production API image from CI, and deploy the frontend build to S3 and CloudFront.
+- [ ] Add a staging stack and CI smoke tests for SPA routing, cache and security headers, compression, and `/api/*` routing.
+- [ ] Configure HTTPS, a custom domain, secrets management, encryption at rest, and automated backups.
+- [ ] Test restoring the database from a backup.
+- [ ] Add monitoring, alarms, and error reporting that do not record financial values.
+- [ ] Write operational documentation and a privacy notice.
+
+**Deliverable:** Publicly available application running on AWS.

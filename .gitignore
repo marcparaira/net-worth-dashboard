@@ -4,3 +4,8 @@ __pycache__/
 node_modules/
 dist/
 .env
+
+# Personal financial data (never commit)
+backend/records/
+backend/rebalancing.json
+actualitzacio-immobles.md
