@@ -1,7 +1,9 @@
 name: CI
 
+# Pull requests, and main after each merge (feature-branch pushes are covered by their PR).
 on:
   push:
+    branches: [main]
   pull_request:
   workflow_dispatch:
 
@@ -19,11 +21,12 @@ jobs:
           python-version: "3.13"
           cache: pip
           cache-dependency-path: backend/requirements-dev.txt
-      - run: pip install -r backend/requirements-dev.txt
-      - run: ruff check .
-      - run: ruff format --check .
-      - run: basedpyright
-      - run: pytest
+      # Same virtual environment as local development; basedpyright is configured to use .venv.
+      - run: python -m venv .venv && .venv/bin/pip install -r backend/requirements-dev.txt
+      - run: .venv/bin/ruff check .
+      - run: .venv/bin/ruff format --check .
+      - run: .venv/bin/basedpyright
+      - run: .venv/bin/pytest
 
   frontend:
     name: Frontend (lint, format, types, tests, build)

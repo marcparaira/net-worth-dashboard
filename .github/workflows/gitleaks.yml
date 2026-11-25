@@ -1,7 +1,9 @@
 name: gitleaks
 
+# Pull requests, and main after each merge (feature-branch pushes are covered by their PR).
 on:
   push:
+    branches: [main]
   pull_request:
   workflow_dispatch:
 
