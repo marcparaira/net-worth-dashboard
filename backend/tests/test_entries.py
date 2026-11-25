@@ -51,7 +51,7 @@ def test_holdings_can_be_created_renamed_recategorised_and_closed(client: TestCl
         "non_liquid",
         "2026-01-31",
     )
-    assert ok(client.get("/api/categories")) == ["Accions", "Fons"]
+    assert [c["name"] for c in ok(client.get("/api/categories"))] == ["Accions", "Fons"]
 
 
 def test_a_holding_needs_a_name_and_a_valid_liquidity(client: TestClient):

@@ -21,13 +21,9 @@ in [the requirements](../requirements.md).
 | Route | Page | Requirements | Phase |
 |---|---|---|---|
 | `/` | Dashboard | FR-01–FR-04 | ✅ Existing |
-| `/rebalancing` | Rebalancing | FR-05 | ✅ Existing |
+| `/rebalancing` | Rebalancing: the plan, and editing its targets | FR-05, FR-10, FR-11 | ✅ Phase 7 |
 | `/snapshots` | Snapshot list | FR-07 | 6 |
-| `/snapshots/new`, `/snapshots/:date` | Snapshot form | FR-06, FR-07, FR-12 | 6 |
-| `/holdings` | Holding list | FR-08, FR-09 | 6 |
-| `/holdings/:id` | Holding detail | FR-08, FR-09 | 6 |
-| `/settings/categories` | Categories | FR-10 | 7 |
-| `/settings/rebalancing` | Rebalancing targets | FR-11 | 7 |
+| `/snapshots/new`, `/snapshots/:id` | Snapshot form, including holdings and liabilities | FR-06–FR-09, FR-12 | 6 |
 | `/settings/account` | Account and data | FR-14–FR-16 | 8 |
 | `/sign-in`, `/sign-up`, `/reset-password` | Authentication | FR-13 | 8 |
 
@@ -35,7 +31,7 @@ in [the requirements](../requirements.md).
 
 | Element | Desktop and tablet | Mobile (< 640 px) |
 |---|---|---|
-| Navigation | Top bar: Dashboard, Rebalancing, Snapshots, Holdings | Bottom tab bar with the same four entries |
+| Navigation | Top bar: Dashboard, Rebalancing, Snapshots | Bottom tab bar with the same three entries |
 | New snapshot | Button in the top bar | Floating button |
 | User menu | Settings, Hide amounts, Language, Sign out | Same, from the avatar |
 | Banner | One at a time: stale snapshot, revaluation reminder, import result | Same |
@@ -52,12 +48,21 @@ The top bar replaces today's segmented control.
 - No snapshots: onboarding panel with three choices: first snapshot, import, or demo data (FR-18).
 - One snapshot: history panels explain that a second snapshot is needed.
 
-### Rebalancing (existing)
+### Rebalancing
 
-- Same panels as today: summary cards, target vs current, where the money should be, what counts as what.
-- The `rebalancing.json` caption becomes an **Edit targets** button.
-- The unassigned-holdings warning links to the target editor.
-- No targets yet: short explanation and **Set up targets**.
+One page shows the plan and edits it. It replaces the separate settings pages.
+
+- **View:** one table, one row per reserve and bucket (sub-buckets indented): name with what it holds, target
+  (amount and share of the pool), current amount with a thin progress bar, and the gap (amber when over target).
+  Below it, one quiet line each for the categories left out and the fill order. A warning lists holdings that no
+  bucket accepts. No targets yet: a short explanation and **Set up targets**.
+- **Edit targets:** the same table becomes the form: names, weights (with the resulting share), and reserve amounts
+  are inputs, and what a row holds opens under it as chips. Current amounts and gaps update as you type, computed by
+  the API (`POST /api/rebalancing/preview`) from the unsaved targets. **Split** adds a sub-bucket; **Remove**
+  deletes a row. Two panels below: categories left out (of the plan, and of the disposable net value), and the fill
+  order with move up and down buttons. Sticky footer with Cancel and Save; Save replaces all targets at once.
+- Category rename, merge, and delete are not in the interface; the API supports them
+  (`/api/categories/{id}`, `/api/categories/{id}/merge`).
 
 ### Snapshot List
 
@@ -71,33 +76,14 @@ The top bar replaces today's segmented control.
 - Each row: holding, previous value, new value, change. Changed rows are highlighted.
 - Stale values show a revaluation hint (FR-17).
 - Inline **Add holding** and **Add liability**.
+- Holdings and liabilities are managed here, with no separate page: **Edit** under a row opens its form below it
+  (name, category, liquidity, linked mortgage, closed), stating that changes apply to every snapshot. A holding
+  without values can be deleted; one with history is closed instead. **Show closed** brings closed ones back to
+  reopen them. Changing a category warns if a rebalancing bucket references the holding.
+- Category and other holding details belong to the holding, not to a snapshot, so they are the same on every date.
 - Sticky footer: new net worth against the previous one, Cancel, Save.
 - Inline validation: duplicate date, future date, invalid amounts.
 - Mobile: one card per holding; footer stays sticky.
-
-### Holding List
-
-- Grouped by liquid, non-liquid, and liabilities: name, category, latest value, sparkline.
-- Closed holdings hidden by default; **Add holding**.
-
-### Holding Detail
-
-- Form: name, category, liquidity, linked mortgage, revaluation interval.
-- Value history chart, including the linked mortgage.
-- **Close** keeps history and hides the holding from new snapshots; a holding with no values can be deleted.
-- Changing the category warns if a rebalancing bucket references the holding.
-
-### Settings › Categories
-
-- Table: name, number of holdings, excluded from disposable value, excluded from rebalancing.
-- Rename inline; a category in use can be merged, not deleted.
-
-### Settings › Rebalancing Targets
-
-- **Editor (left):** reserves (name, amount, source categories); bucket tree (name, weight, resulting share, members); fill order as a draggable list.
-- **Preview (right):** target vs current computed from the unsaved settings, with warnings for unassigned holdings.
-- Inline validation; sticky footer with Discard and Save; Save replaces all settings in one transaction.
-- Mobile: preview below the editor, collapsed.
 
 ### Settings › Account and Data
 
@@ -134,6 +120,5 @@ The top bar replaces today's segmented control.
 ## 7. Open Questions
 
 - Path-based or hash-based routing (affects the CloudFront SPA fallback).
-- Whether the target preview needs an API endpoint or computes in the browser.
 - Whether liabilities are entered as positive or negative amounts.
 - Cognito managed login or custom sign-in forms.

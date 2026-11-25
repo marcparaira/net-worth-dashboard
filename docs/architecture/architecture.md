@@ -31,7 +31,7 @@ flowchart LR
         P_DASH["Dashboard page"]
         P_REB["Rebalancing page"]
         P_DATA["Data entry pages<br/>(snapshots, holdings)"]
-        P_SET["Settings pages<br/>(categories, targets, account)"]
+        P_SET["Rebalancing targets editor<br/>(exclusions, fill order)"]
     end
 
     A_ANALYTICS --> A_QUERY
@@ -41,7 +41,7 @@ flowchart LR
     DB -->|read| A_REPO
     A_REPO --> A_ANALYTICS
     P_DATA --> A_CMD
-    P_SET -.-> A_CMD
+    P_SET --> A_CMD
     A_CMD --> A_REPO
     A_REPO -->|write| DB
 
@@ -57,8 +57,8 @@ flowchart LR
     classDef done fill:#dcfce7,stroke:#16a34a,stroke-width:2px,color:#166534
     classDef planned fill:#f8fafc,stroke:#94a3b8,stroke-width:2px,stroke-dasharray:5 4,color:#64748b
     classDef storage fill:#fce7f3,stroke:#db2777,stroke-width:2px,color:#831843
-    class A_ANALYTICS,A_QUERY,A_REPO,A_CMD,CLI,P_DASH,P_REB,P_DATA done
-    class A_AUTH,P_SET,JOBS,IDP,EMAIL planned
+    class A_ANALYTICS,A_QUERY,A_REPO,A_CMD,CLI,P_DASH,P_REB,P_DATA,P_SET done
+    class A_AUTH,JOBS,IDP,EMAIL planned
     class FILES,DB storage
 
     style API fill:#faf5ff,stroke:#a855f7,stroke-width:2px,color:#581c87
@@ -115,9 +115,9 @@ The whole deployment is planned. All infrastructure is defined in AWS CDK.
 
 | Component | Responsibilities | Reads | Writes | Status |
 |---|---|---|---|---|
-| **Web App** | Display dashboard and rebalancing; enter snapshots and holdings; edit settings; sign in | API Server, Cognito | API Server | ✅ Dashboard, rebalancing, snapshots, holdings · 🔲 Settings, sign-in |
+| **Web App** | Display dashboard and rebalancing; enter snapshots and holdings; edit settings; sign in | API Server, Cognito | API Server | ✅ Dashboard, rebalancing, snapshots, holdings, settings · 🔲 Sign-in, account |
 | **Query routes** | Build the dashboard and rebalancing payloads | Analytics | — | ✅ Implemented |
-| **Write routes** | Create, update, and delete user data; import; export; delete account | Repository | Repository | ✅ Snapshots, holdings, liabilities · 🔲 Settings, export, account |
+| **Write routes** | Create, update, and delete user data; import; export; delete account | Repository | Repository | ✅ Snapshots, holdings, liabilities, categories, rebalancing settings · 🔲 Export, account |
 | **Auth** | Validate tokens and resolve the current user for every route | Cognito signing keys | — | 🔲 Planned |
 | **Analytics** | Pure functions over validated models: totals, interpolation, history, allocation, rebalancing | Records and settings from the repository | — | ✅ Implemented |
 | **YAML loader** | Read and validate records and `rebalancing.json` for the import command | YAML files | — | ✅ Import only |
@@ -132,11 +132,12 @@ The whole deployment is planned. All infrastructure is defined in AWS CDK.
 | `/api/health` | GET | Health check | ✅ Implemented |
 | `/api/dashboard` | GET | Summary, history, allocation, holdings, movement | ✅ Implemented |
 | `/api/rebalancing` | GET | Rebalancing result for the latest snapshot | ✅ Implemented |
-| `/api/rebalancing/settings` | GET, PUT | Read and replace the rebalancing settings (buckets, reserves, exclusions, fill order) in one transaction | 🔲 Planned |
+| `/api/rebalancing/settings` | GET, PUT | Read and replace the rebalancing settings (buckets, reserves, exclusions, fill order) in one transaction; holdings named by id | ✅ Implemented |
+| `/api/rebalancing/preview` | POST | The rebalancing that unsaved settings would give, computed by the same code; nothing is saved | ✅ Implemented |
 | `/api/snapshots`, `/api/snapshots/{id}` | GET, POST, PUT, DELETE | Dated snapshots with holding and liability values; one snapshot includes the previous one for comparison | ✅ Implemented |
 | `/api/holdings`, `/api/holdings/{id}` | GET, POST, PUT, DELETE | Holdings with their latest value; delete only without history (otherwise close) | ✅ Implemented |
 | `/api/liabilities`, `/api/liabilities/{id}` | GET, POST, PUT, DELETE | Liabilities; linked to a property, a liability is its mortgage | ✅ Implemented |
-| `/api/categories` | GET | Category names (created when a holding uses a new one) | ✅ Read · 🔲 Edit (Phase 7) |
+| `/api/categories`, `/api/categories/{id}`, `/api/categories/{id}/merge` | GET, POST, PUT, DELETE | Categories with usage and exclusion flags; rename, merge into another, delete when unused | ✅ Implemented |
 | `/api/import`, `/api/export` | POST, GET | YAML/CSV import; JSON/CSV export | 🔲 Planned |
 | `/api/account` | GET, DELETE | Preferences; account deletion | 🔲 Planned |
 
@@ -146,8 +147,8 @@ The whole deployment is planned. All infrastructure is defined in AWS CDK.
 |---|---|---|
 | `users` | id, identity provider subject, locale, currency | One row per Cognito user; a single `local` user until accounts exist |
 | `categories` | id, user, name, excluded from disposable value, excluded from rebalancing | Replaces the `EXCLUDED_CATEGORY` constant and `excluded_categories` |
-| `holdings` | id, user, ref, name, category, liquidity, closed on | `ref` is the stable identifier from the records; identity kept across snapshots |
-| `liabilities` | id, user, ref, name, linked holding (optional), closed on | A mortgage is a liability linked to a property (at most one per property) |
+| `holdings` | id, user, name, category, liquidity, closed on | What a holding is; amounts live in `snapshot_values`. Identified by its id everywhere, including the analytics and rebalancing settings |
+| `liabilities` | id, user, name, linked holding (optional), closed on | A mortgage is a liability linked to a property (at most one per property) |
 | `snapshots` | id, user, date | Unique date per user |
 | `snapshot_values` | user, snapshot, holding or liability (exactly one), amount | Amounts as `NUMERIC(14, 2)` |
 | `rebalancing_buckets` | id, user, parent bucket (optional), name, weight, fill position (optional) | Tree of buckets; weights are relative among siblings |

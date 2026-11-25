@@ -16,11 +16,39 @@ from backend.config import SAMPLE_DATA_DIR
 from backend.dashboard import build_dashboard
 from backend.db_models import Base, Category, SnapshotValue
 from backend.importer import DataImportError, import_data
-from backend.models import Record
-from backend.rebalancing import RebalancingConfig, build_rebalancing, load_config
+from backend.models import Assets, Holding, Liabilities, Record
+from backend.rebalancing import Bucket, RebalancingConfig, build_rebalancing, load_config
 from backend.records import load_records as load_yaml_records
 
 pytestmark = pytest.mark.db
+
+
+def relabel(records: list[Record], config: RebalancingConfig, ids: dict[str, str]):
+    """The YAML records and settings with every id replaced by the database id it was imported as,
+    so they can be compared with what the database gives back."""
+
+    def bucket(b: Bucket) -> Bucket:
+        return b.model_copy(
+            update={"holding_ids": [ids[h] for h in b.holding_ids], "children": [bucket(c) for c in b.children]}
+        )
+
+    def holding(h: Holding) -> Holding:
+        mortgage = h.mortgage.model_copy(update={"id": ids[h.mortgage.id]}) if h.mortgage else None
+        return h.model_copy(update={"id": ids[h.id], "mortgage": mortgage})
+
+    relabelled = [
+        Record(
+            date=r.date,
+            assets=Assets(
+                liquid=[holding(h) for h in r.assets.liquid], non_liquid=[holding(h) for h in r.assets.non_liquid]
+            ),
+            liabilities=Liabilities(
+                non_liquid=[lb.model_copy(update={"id": ids[lb.id]}) for lb in r.liabilities.non_liquid]
+            ),
+        )
+        for r in records
+    ]
+    return relabelled, config.model_copy(update={"buckets": [bucket(b) for b in config.buckets]})
 
 
 @pytest.fixture(scope="module")
@@ -34,9 +62,10 @@ def test_migrations_match_the_models(db_engine: Engine) -> None:
 
 
 def test_imported_data_gives_identical_results(db_session: Session, sample: tuple[list[Record], RebalancingConfig]):
-    records, config = sample
-    summary = import_data(db_session, records, config)
-    assert (summary.snapshots, summary.rebalancing) == (len(records), True)
+    summary = import_data(db_session, *sample)
+    assert (summary.snapshots, summary.rebalancing) == (len(sample[0]), True)
+    # The database identifies holdings by its own ids; everything else must be identical.
+    records, config = relabel(*sample, summary.ids)
 
     user = repository.find_user(db_session)
     assert user is not None
@@ -105,8 +134,8 @@ def test_users_only_see_their_own_data(db_session: Session, sample: tuple[list[R
 def test_api_serves_the_imported_data(
     client: TestClient, db_session: Session, sample: tuple[list[Record], RebalancingConfig]
 ):
-    records, config = sample
-    _ = import_data(db_session, records, config)
+    summary = import_data(db_session, *sample)
+    records, config = relabel(*sample, summary.ids)
 
     dashboard = client.get("/api/dashboard", params={"rate_basis": "overall"})
     assert dashboard.status_code == 200

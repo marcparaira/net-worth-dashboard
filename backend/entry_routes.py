@@ -36,11 +36,6 @@ def integrity_error_response(_request: Request, _exc: Exception) -> JSONResponse
     )
 
 
-@router.get("/categories")
-def categories(session: SessionDep, user: UserDep) -> list[str]:
-    return entries.list_categories(session, user.id)
-
-
 @router.get("/holdings")
 def holdings(session: SessionDep, user: UserDep) -> list[HoldingOut]:
     return entries.list_holdings(session, user.id)

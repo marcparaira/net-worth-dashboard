@@ -46,6 +46,15 @@ def get_or_create_user(session: Session, subject: str = LOCAL_USER_SUBJECT) -> U
     return user
 
 
+def disposable_exclusions(session: Session, user_id: uuid.UUID) -> frozenset[str]:
+    """Names of the user's categories left out of the disposable net value."""
+    return frozenset(
+        session.scalars(
+            select(Category.name).where(Category.user_id == user_id, Category.excluded_from_disposable.is_(True))
+        )
+    )
+
+
 def amount(value: Decimal) -> float:
     """Exact stored amount as the float the analytics models use."""
     return float(value)
@@ -92,17 +101,17 @@ def _record(
 ) -> Record:
     liquid: list[HoldingModel] = []
     non_liquid: list[HoldingModel] = []
-    for holding_id, value in sorted(holding_values.items(), key=lambda item: holdings[item[0]].ref):
+    for holding_id, value in sorted(holding_values.items(), key=lambda item: holdings[item[0]].name):
         holding = holdings[holding_id]
         mortgage = mortgage_of.get(holding_id)
         mortgage_value = liability_values.get(mortgage.id) if mortgage else None
         item = HoldingModel(
-            id=holding.ref,
+            id=str(holding.id),
             name=holding.name,
             value=amount(value),
             category=categories[holding.category_id],
             mortgage=(
-                Mortgage(id=mortgage.ref, name=mortgage.name, value=amount(mortgage_value))
+                Mortgage(id=str(mortgage.id), name=mortgage.name, value=amount(mortgage_value))
                 if mortgage is not None and mortgage_value is not None
                 else None
             ),
@@ -110,8 +119,8 @@ def _record(
         (liquid if holding.liquidity == "liquid" else non_liquid).append(item)
 
     standalone = [
-        LiabilityModel(id=liabilities[liability_id].ref, name=liabilities[liability_id].name, value=amount(value))
-        for liability_id, value in sorted(liability_values.items(), key=lambda item: liabilities[item[0]].ref)
+        LiabilityModel(id=str(liability_id), name=liabilities[liability_id].name, value=amount(value))
+        for liability_id, value in sorted(liability_values.items(), key=lambda item: liabilities[item[0]].name)
         if liabilities[liability_id].holding_id is None
     ]
     return Record(
@@ -124,7 +133,6 @@ def _record(
 def load_rebalancing_config(session: Session, user_id: uuid.UUID) -> RebalancingConfig | None:
     """The user's rebalancing settings, or None if they have none."""
     categories = {c.id: c for c in session.scalars(select(Category).where(Category.user_id == user_id))}
-    holding_refs = {h.id: h.ref for h in session.scalars(select(Holding).where(Holding.user_id == user_id))}
     reserves = session.scalars(
         select(RebalancingReserve).where(RebalancingReserve.user_id == user_id).order_by(RebalancingReserve.position)
     ).all()
@@ -152,7 +160,7 @@ def load_rebalancing_config(session: Session, user_id: uuid.UUID) -> Rebalancing
         if member.category_id is not None:
             member_categories[member.bucket_id].append(categories[member.category_id].name)
         elif member.holding_id is not None:
-            member_holdings[member.bucket_id].append(holding_refs[member.holding_id])
+            member_holdings[member.bucket_id].append(str(member.holding_id))
 
     children: dict[uuid.UUID | None, list[RebalancingBucket]] = defaultdict(list)
     for bucket in buckets:

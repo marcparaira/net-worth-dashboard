@@ -11,9 +11,11 @@ from .config import APP_VERSION, CORS_ORIGINS, RateBasis
 from .dashboard import build_dashboard
 from .deps import SessionDep, UserDep
 from .entries import EntryError
-from .entry_routes import entry_error_response, integrity_error_response, router
+from .entry_routes import entry_error_response, integrity_error_response
+from .entry_routes import router as entry_router
 from .rebalancing import build_rebalancing
 from .schemas import DashboardPayload, Health, RebalancingPayload
+from .settings_routes import router as settings_router
 
 app = FastAPI(title="Net Worth Dashboard API", version=APP_VERSION)
 app.add_middleware(
@@ -23,7 +25,8 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-app.include_router(router)
+app.include_router(entry_router)
+app.include_router(settings_router)
 app.add_exception_handler(EntryError, entry_error_response)
 app.add_exception_handler(IntegrityError, integrity_error_response)
 
@@ -35,7 +38,7 @@ def dashboard(session: SessionDep, user: UserDep, rate_basis: RateBasis = "last_
     records = repository.load_records(session, user.id)
     if not records:
         raise HTTPException(status_code=404, detail=NO_DATA)
-    return build_dashboard(records, rate_basis)
+    return build_dashboard(records, rate_basis, repository.disposable_exclusions(session, user.id))
 
 
 @app.get("/api/rebalancing")

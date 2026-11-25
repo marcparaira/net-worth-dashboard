@@ -9,11 +9,6 @@ const token = (name: string): string => `var(${name})`;
 /** Categorical palette, in an order that keeps neighbouring colours distinguishable. */
 export const PALETTE: readonly string[] = CHART_TOKENS.map(token);
 export const paletteColor = (index: number): string => PALETTE[index % PALETTE.length];
-export const NEUTRAL_COLOR = token('--chart-neutral');
-
-/** Palette for rebalancing slices: skips red, which reads as a loss. */
-const SLICE_PALETTE = ['--chart-1', '--chart-2', '--chart-3', '--chart-6', '--chart-5'].map(token);
-export const sliceColor = (index: number): string => SLICE_PALETTE[index % SLICE_PALETTE.length];
 
 /** Fixed colour per known category, so a category looks the same in every chart. */
 const CATEGORY_COLORS: Record<string, string> = {
@@ -40,9 +35,6 @@ export const SERIES_COLORS = {
   nonLiquid: token('--chart-6'),
   liabilities: token('--chart-4'),
 } as const;
-
-export const TARGET_COLOR = token('--color-border-strong');
-export const CURRENT_COLOR = token('--color-accent');
 
 /** Shared Recharts props, spread onto the matching chart elements. */
 export const gridProps = { strokeDasharray: '3 3', stroke: token('--color-border') };

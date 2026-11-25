@@ -86,10 +86,10 @@ The current styling looks generic. Define a design system before new pages are b
 
 ## Phase 7 — Rebalancing Settings
 
-- [ ] Add API endpoints to read and replace the rebalancing settings in one transaction, with validation.
-- [ ] Add an editor for buckets, weights, reserves, excluded categories, and fill order.
-- [ ] Manage categories, including the categories excluded from disposable net value.
-- [ ] Preview the effect of a change before saving it.
+- [x] Add API endpoints to read and replace the rebalancing settings in one transaction, with validation.
+- [x] Add an editor for buckets, weights, reserves, excluded categories, and fill order.
+- [x] Manage categories, including the categories excluded from disposable net value.
+- [x] Preview the effect of a change before saving it.
 
 **Deliverable:** Rebalancing fully configurable from the UI.
 
@@ -109,7 +109,7 @@ The current styling looks generic. Define a design system before new pages are b
 - [ ] Let users choose the language from the user menu (remembered per user, and per browser before signing in); default to the browser language. Category and holding names are user data and are not translated.
 - [ ] Make the snapshot form and dashboard usable on mobile.
 - [ ] Add revaluation reminders for rarely updated holdings, such as properties.
-- [ ] Add a holding detail page with its value history, and sparklines in the holding list.
+- [ ] Show each holding's value history, for example from the snapshot form or the dashboard's holdings table.
 - [ ] Add an empty-state onboarding flow for new users, with optional demo data.
 
 **Deliverable:** First complete MVP, usable by people other than the author.

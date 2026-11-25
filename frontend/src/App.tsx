@@ -1,7 +1,6 @@
 import { useHashRoute } from './hooks/useHashRoute';
 import { APP_VERSION, versionLabel } from './lib/version';
 import { DashboardPage } from './pages/DashboardPage';
-import { HoldingsPage } from './pages/HoldingsPage';
 import { RebalancingPage } from './pages/RebalancingPage';
 import { SnapshotFormPage } from './pages/SnapshotFormPage';
 import { SnapshotsPage } from './pages/SnapshotsPage';
@@ -10,7 +9,6 @@ const NAV = [
   { path: 'dashboard', label: 'Dashboard' },
   { path: 'rebalancing', label: 'Rebalancing' },
   { path: 'snapshots', label: 'Snapshots' },
-  { path: 'holdings', label: 'Holdings' },
 ] as const;
 
 function Page({ route }: { route: string[] }) {
@@ -22,8 +20,6 @@ function Page({ route }: { route: string[] }) {
       if (id === 'new') return <SnapshotFormPage key="new" snapshotId={null} />;
       if (id) return <SnapshotFormPage key={id} snapshotId={id} />;
       return <SnapshotsPage />;
-    case 'holdings':
-      return <HoldingsPage />;
     default:
       return <DashboardPage />;
   }

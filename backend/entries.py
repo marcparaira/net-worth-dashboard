@@ -148,10 +148,6 @@ class SnapshotSummary(Strict):
 # --- Categories ------------------------------------------------------------------------------
 
 
-def list_categories(session: Session, owner: uuid.UUID) -> list[str]:
-    return list(session.scalars(select(Category.name).where(Category.user_id == owner).order_by(Category.name)))
-
-
 def category_for(session: Session, owner: uuid.UUID, name: str) -> Category:
     """The owner's category with this name, created if it does not exist."""
     category = session.scalar(select(Category).where(Category.user_id == owner, Category.name == name))
@@ -242,7 +238,6 @@ def create_holding(session: Session, owner: uuid.UUID, data: HoldingIn) -> Holdi
         Holding(
             id=holding_id,
             user_id=owner,
-            ref=str(holding_id),
             name=data.name,
             category=category_for(session, owner, data.category),
             liquidity=data.liquidity,
@@ -309,7 +304,6 @@ def create_liability(session: Session, owner: uuid.UUID, data: LiabilityIn) -> L
         Liability(
             id=liability_id,
             user_id=owner,
-            ref=str(liability_id),
             name=data.name,
             holding_id=data.holding_id,
             closed_on=data.closed_on,

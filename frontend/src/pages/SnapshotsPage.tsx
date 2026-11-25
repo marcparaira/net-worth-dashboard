@@ -51,11 +51,8 @@ export function SnapshotsPage() {
       >
         {data.length === 0 ? (
           <div className="empty-state">
-            <p>No snapshots yet. Add your holdings, then record what each one is worth today.</p>
+            <p>No snapshots yet. Record what you own and owe, and what each is worth today.</p>
             <div className="form-actions">
-              <a className="button" href="#holdings">
-                Add holdings
-              </a>
               <a className="button primary" href="#snapshots/new">
                 New snapshot
               </a>

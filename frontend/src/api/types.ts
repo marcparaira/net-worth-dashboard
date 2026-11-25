@@ -4,7 +4,8 @@ export type RateBasis = 'last_year' | 'overall';
 
 export interface Meta {
   latest_date: string;
-  excluded_category: string;
+  /** Categories left out of the disposable net value. */
+  excluded_categories: string[];
   historical_growth_basis: RateBasis;
 }
 
@@ -190,4 +191,45 @@ export interface SnapshotSummary {
   net_worth: number;
   change: number | null;
   value_count: number;
+}
+
+// Settings: /api/categories, /api/rebalancing/settings, /api/rebalancing/preview
+
+export interface CategoryOut {
+  id: string;
+  name: string;
+  excluded_from_disposable: boolean;
+  excluded_from_rebalancing: boolean;
+  holding_count: number;
+  /** Referenced by a reserve or bucket in the rebalancing settings. */
+  in_rebalancing: boolean;
+}
+
+export interface CategoryIn {
+  name: string;
+  excluded_from_disposable: boolean;
+  excluded_from_rebalancing: boolean;
+}
+
+export interface ReserveSettings {
+  name: string;
+  amount: number;
+  categories: string[];
+}
+
+export interface BucketSettings {
+  name: string;
+  weight: number;
+  categories: string[];
+  /** Holding ids (from /api/holdings). */
+  holding_ids: string[];
+  children: BucketSettings[];
+}
+
+export interface RebalancingSettings {
+  excluded_categories: string[];
+  reserves: ReserveSettings[];
+  buckets: BucketSettings[];
+  /** Names of reserves and leaf buckets, in the order they get first pick. */
+  fill_order: string[];
 }

@@ -76,6 +76,12 @@ describe('buildGroups', () => {
     expect(groups[1].rows[1]).toMatchObject({ label: 'Mortgage', propertyKey: 'holding:flat' });
   });
 
+  it('shows closed holdings on request, marked as closed', () => {
+    const groups = buildGroups(holdings, liabilities, [], [], true);
+    const old = groups[0].rows.find((r) => r.key === 'holding:old');
+    expect(old?.closed).toBe(true);
+  });
+
   it('keeps a closed holding when the edited snapshot has a value for it', () => {
     const groups = buildGroups(holdings, [], [], [{ holding_id: 'old', liability_id: null, amount: 5 }]);
     expect(groups[0].rows.map((r) => r.key)).toContain('holding:old');

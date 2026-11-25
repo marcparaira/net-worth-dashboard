@@ -29,7 +29,8 @@ podman compose exec api python -m backend.importer --replace   # deletes your da
 
 The import runs in one transaction and refuses data it cannot store faithfully: a
 holding whose name, category or liquidity changes between records, two records with the
-same date, or amounts with more than two decimals. Never commit personal data: `.env`
+same date, or amounts with more than two decimals. The YAML ids are not kept: imported holdings get database ids, and the
+rebalancing settings are translated to them. Never commit personal data: `.env`
 and the old data locations are ignored, and gitleaks checks every commit (see below).
 
 ## Features
@@ -95,11 +96,11 @@ On the host, the API connects to `localhost:$DB_PORT`; set `DATABASE_URL` to use
   disposable-growth metric.
 
 - `GET /api/rebalancing`: target allocation of the latest snapshot, from the
-  rebalancing settings imported from `rebalancing.json` (see below).
+  rebalancing settings, edited on the Rebalancing page or imported from `rebalancing.json` (see below).
 
 Both return 404 with an explanation when there are no snapshots yet.
 
-Data entry, used by the Snapshots and Holdings pages. Amounts are exact, with at most
+Data entry, used by the snapshot form (which also manages holdings and liabilities). Amounts are exact, with at most
 two decimals and never negative (debts are liabilities); errors come back as
 `{"detail": "..."}` with 404, 409 (conflict, such as a duplicate date), or 422 (invalid).
 
@@ -111,12 +112,20 @@ two decimals and never negative (debts are liabilities); errors come back as
   value; rename, recategorise, close. Only holdings without history can be deleted.
 - `GET|POST /api/liabilities`, `PUT|DELETE /api/liabilities/{id}`: liabilities; set
   `holding_id` to make one the mortgage of a property.
-- `GET /api/categories`: category names.
+- `GET|POST /api/categories`, `PUT|DELETE /api/categories/{id}`: categories with how many
+  holdings use them and whether they are left out of the disposable net value or the
+  rebalancing; rename, delete when unused. `POST /api/categories/{id}/merge` moves its
+  holdings and rebalancing references to another category.
+- `GET|PUT /api/rebalancing/settings`: read or replace all rebalancing settings at once
+  (same shape as `rebalancing.json`, with buckets naming holdings by id). Nothing is saved
+  unless all of it is valid.
+- `POST /api/rebalancing/preview`: the rebalancing that unsaved settings would give.
 
 ## Rebalancing
 
-The **Rebalancing** tab compares where your money is with where you want it, using
-`<data directory>/rebalancing.json`:
+The **Rebalancing** page compares where your money is with where you want it. The targets
+are edited on the same page (**Edit targets**), with figures that update as you type; `rebalancing.json`
+is only read by the import command. The settings are:
 
 - `excluded_categories`: left out entirely (e.g. Pensions, Vehicles).
 - `reserves`: fixed amounts (e.g. emergency fund, down-payment goal), filled in order from
@@ -208,6 +217,8 @@ Backend (`backend/`):
 - `importer.py`: `python -m backend.importer`, YAML records into the database
 - `migrate.py`: `python -m backend.migrate`, waits for the database and applies migrations
 - `entries.py`, `entry_routes.py`: data entry (holdings, liabilities, snapshots): rules and API routes
+- `settings.py`, `settings_routes.py`: categories and rebalancing settings, including the preview
+- `money.py`: exact amounts (two decimals)
 - `deps.py`: request dependencies (database session, current user)
 - `ledger.py`: per-record totals (`Totals`, `Snapshot`) and per-holding rows
 - `timeseries.py`: month arithmetic, monthly interpolation, small numeric helpers
@@ -222,7 +233,9 @@ Frontend (`frontend/src/`, TypeScript):
 - `api/client.ts`, `hooks/useApi.ts`: API requests, with readable errors and reload
 - `hooks/useHashRoute.ts`: routes in the URL hash (`#snapshots/new`)
 - `lib/entries.ts`: snapshot form logic: amount parsing, rows, validation (with tests)
+- `lib/rebalancingDraft.ts`: rebalancing settings editor logic: draft, shares, tree edits, validation (with tests)
+- `lib/plan.ts`: rows of the rebalancing table, pairing targets with computed figures (with tests)
 - `lib/derive.ts`, `lib/rebalancing.ts`: pure functions that turn payloads into chart data (with tests)
 - `lib/format.ts`, `lib/theme.ts`, `lib/constants.ts`: formatters, colours, shared chart props, category names
 - `components/`: one component per panel, plus shared pieces in `common.tsx`
-- `pages/`: Dashboard, Rebalancing, Snapshots (list and form), and Holdings pages
+- `pages/`: Dashboard, Rebalancing (the plan and editing its targets), and Snapshots (list, and the form that also manages holdings and liabilities)

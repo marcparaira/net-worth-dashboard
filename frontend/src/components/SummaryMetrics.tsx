@@ -41,7 +41,11 @@ export function SummaryMetrics({
       <MetricCard
         title="Disposable net value"
         value={summary.disposable_net_value}
-        subtitle={`Excludes ${meta.excluded_category} and their mortgages`}
+        subtitle={
+          meta.excluded_categories.length
+            ? `Excludes ${meta.excluded_categories.join(', ')} and their mortgages`
+            : 'Nothing excluded'
+        }
       />
       <MetricCard
         title="Monthly disposable increase"

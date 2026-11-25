@@ -13,7 +13,6 @@ from __future__ import annotations
 import argparse
 import sys
 import uuid
-from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import date
 from decimal import Decimal
@@ -36,14 +35,15 @@ from .db_models import (
     Snapshot,
     SnapshotValue,
 )
+from .entries import EntryError
 from .ledger import standalone_liabilities
 from .migrate import wait_for_database
 from .models import Record
-from .rebalancing import Bucket, RebalancingConfig, load_config
+from .money import to_cents
+from .rebalancing import RebalancingConfig, load_config
 from .records import load_records
 from .repository import get_or_create_user
-
-CENT = Decimal("0.01")
+from .settings import write_rebalancing
 
 
 class DataImportError(Exception):
@@ -57,14 +57,16 @@ class ImportSummary:
     liabilities: int
     values: int
     rebalancing: bool
+    # Each YAML id with the database id of the holding or liability it became.
+    ids: dict[str, str]
 
 
 def exact(value: float, where: str) -> Decimal:
     """The amount as an exact decimal; refuses values that need more than two decimals."""
-    result = Decimal(repr(value))
-    if result != result.quantize(CENT):
-        raise DataImportError(f"{where}: {value} has more than two decimals")
-    return result.quantize(CENT)
+    try:
+        return to_cents(value)
+    except ValueError as exc:
+        raise DataImportError(f"{where}: {exc}") from exc
 
 
 def check_consistency(records: list[Record]) -> None:
@@ -158,8 +160,8 @@ def import_data(
                 holding = holdings.get(item.id)
                 if holding is None:
                     holding = Holding(
+                        id=uuid.uuid4(),
                         user_id=owner,
-                        ref=item.id,
                         name=item.name,
                         category=category(item.category),
                         liquidity=liquidity,
@@ -171,9 +173,7 @@ def import_data(
                 if item.mortgage:
                     mortgage = liabilities.get(item.mortgage.id)
                     if mortgage is None:
-                        mortgage = Liability(
-                            user_id=owner, ref=item.mortgage.id, name=item.mortgage.name, holding=holding
-                        )
+                        mortgage = Liability(id=uuid.uuid4(), user_id=owner, name=item.mortgage.name, holding=holding)
                         liabilities[item.mortgage.id] = mortgage
                         session.add(mortgage)
                     add_value(snapshot, item.mortgage.value, f"{record.date} {item.mortgage.id}", liability=mortgage)
@@ -182,63 +182,20 @@ def import_data(
         for item in standalone_liabilities(record):
             liability = liabilities.get(item.id)
             if liability is None:
-                liability = Liability(user_id=owner, ref=item.id, name=item.name)
+                liability = Liability(id=uuid.uuid4(), user_id=owner, name=item.name)
                 liabilities[item.id] = liability
                 session.add(liability)
             add_value(snapshot, item.value, f"{record.date} {item.id}", liability=liability)
             values += 1
 
     if config is not None:
-        import_rebalancing(session, owner, config, category, holdings)
+        try:
+            write_rebalancing(session, owner, config, category, holdings)
+        except EntryError as exc:
+            raise DataImportError(exc.message) from exc
     session.flush()
-    return ImportSummary(len(records), len(holdings), len(liabilities), values, config is not None)
-
-
-def import_rebalancing(
-    session: Session,
-    owner: uuid.UUID,
-    config: RebalancingConfig,
-    category: Callable[[str], Category],
-    holdings: dict[str, Holding],
-) -> None:
-    fill_position = {name: index for index, name in enumerate(config.fill_order)}
-
-    for name in config.excluded_categories:
-        category(name).excluded_from_rebalancing = True
-
-    for position, reserve in enumerate(config.reserves):
-        row = RebalancingReserve(
-            user_id=owner,
-            name=reserve.name,
-            amount=exact(reserve.amount, f"reserve {reserve.name!r}"),
-            position=position,
-            fill_position=fill_position.get(reserve.name),
-        )
-        session.add(row)
-        for index, name in enumerate(reserve.categories):
-            session.add(RebalancingReserveCategory(user_id=owner, reserve=row, category=category(name), position=index))
-
-    def add_bucket(bucket: Bucket, position: int, parent: RebalancingBucket | None) -> None:
-        row = RebalancingBucket(
-            user_id=owner,
-            parent=parent,
-            name=bucket.name,
-            weight=bucket.weight,
-            position=position,
-            fill_position=None if bucket.children else fill_position.get(bucket.name),
-        )
-        session.add(row)
-        for index, name in enumerate(bucket.categories):
-            session.add(RebalancingBucketMember(user_id=owner, bucket=row, category=category(name), position=index))
-        for index, ref in enumerate(bucket.holding_ids, start=len(bucket.categories)):
-            if ref not in holdings:
-                raise DataImportError(f"bucket {bucket.name!r} names holding {ref!r}, which no record contains")
-            session.add(RebalancingBucketMember(user_id=owner, bucket=row, holding=holdings[ref], position=index))
-        for index, child in enumerate(bucket.children):
-            add_bucket(child, index, row)
-
-    for index, bucket in enumerate(config.buckets):
-        add_bucket(bucket, index, None)
+    ids = {key: str(item.id) for key, item in [*holdings.items(), *liabilities.items()]}
+    return ImportSummary(len(records), len(holdings), len(liabilities), values, config is not None, ids)
 
 
 def main(argv: list[str] | None = None) -> int:

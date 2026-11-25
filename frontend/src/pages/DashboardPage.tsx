@@ -32,11 +32,8 @@ export function DashboardPage() {
     return (
       <div className="panel empty-state">
         <h1>Welcome</h1>
-        <p>Start by adding what you own and owe, then record what each is worth today.</p>
+        <p>Record your first snapshot: add what you own and owe, and what each is worth today.</p>
         <div className="form-actions">
-          <a className="button" href="#holdings">
-            Add holdings
-          </a>
           <a className="button primary" href="#snapshots/new">
             Record a snapshot
           </a>

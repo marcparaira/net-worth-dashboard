@@ -39,6 +39,8 @@ export interface EntryRow {
   /** For a mortgage, the key of its property's row. */
   propertyKey: string | null;
   previous: number | null;
+  /** Closed holdings and liabilities are shown only on request, or when the snapshot has a value. */
+  closed: boolean;
 }
 
 export interface EntryGroup {
@@ -58,17 +60,19 @@ function valueMap(values: SnapshotValue[] | undefined): Map<string, number> {
 
 /**
  * Rows of the snapshot form, grouped by liquidity, with each mortgage right after its property.
- * Closed holdings and liabilities are left out unless the snapshot being edited has a value for them.
+ * Closed holdings and liabilities are left out unless the snapshot being edited has a value for them,
+ * or `includeClosed` is set (to reopen them).
  */
 export function buildGroups(
   holdings: HoldingOut[],
   liabilities: LiabilityOut[],
   previous: SnapshotValue[] | undefined,
   current: SnapshotValue[] | undefined,
+  includeClosed = false,
 ): EntryGroup[] {
   const before = valueMap(previous);
   const now = valueMap(current);
-  const shown = (key: string, closedOn: string | null) => !closedOn || now.has(key);
+  const shown = (key: string, closedOn: string | null) => includeClosed || !closedOn || now.has(key);
   const byName = <T extends { name: string }>(a: T, b: T) => a.name.localeCompare(b.name);
 
   const liabilityRow = (liability: LiabilityOut, propertyKey: string | null): EntryRow => ({
@@ -79,6 +83,7 @@ export function buildGroups(
     label: propertyKey ? 'Mortgage' : 'Liability',
     propertyKey,
     previous: before.get(liabilityKey(liability.id)) ?? null,
+    closed: Boolean(liability.closed_on),
   });
   const holdingRow = (holding: HoldingOut): EntryRow => ({
     key: holdingKey(holding.id),
@@ -88,6 +93,7 @@ export function buildGroups(
     label: holding.category,
     propertyKey: null,
     previous: before.get(holdingKey(holding.id)) ?? null,
+    closed: Boolean(holding.closed_on),
   });
 
   const visibleHoldings = holdings.filter((h) => shown(holdingKey(h.id), h.closed_on));

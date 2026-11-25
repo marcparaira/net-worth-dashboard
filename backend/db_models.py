@@ -87,13 +87,8 @@ class Holding(Owned, Base):
     """An asset (account, property, vehicle, pension) whose value is recorded in snapshots."""
 
     __tablename__ = "holdings"
-    __table_args__ = (
-        UniqueConstraint("user_id", "ref"),
-        CheckConstraint(f"liquidity IN {LIQUIDITIES}", name="liquidity"),
-    )
+    __table_args__ = (CheckConstraint(f"liquidity IN {LIQUIDITIES}", name="liquidity"),)
 
-    # Stable identifier from the records (the YAML ``id``), used by rebalancing settings.
-    ref: Mapped[str] = mapped_column(String(100))
     name: Mapped[str] = mapped_column(String(200))
     category_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("categories.id", ondelete="RESTRICT"), index=True)
     liquidity: Mapped[str] = mapped_column(String(20))
@@ -106,9 +101,8 @@ class Liability(Owned, Base):
     """A debt. A mortgage is a liability linked to the property it finances."""
 
     __tablename__ = "liabilities"
-    __table_args__ = (UniqueConstraint("user_id", "ref"), UniqueConstraint("holding_id"))
+    __table_args__ = (UniqueConstraint("holding_id"),)
 
-    ref: Mapped[str] = mapped_column(String(100))
     name: Mapped[str] = mapped_column(String(200))
     holding_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("holdings.id", ondelete="RESTRICT"))
     closed_on: Mapped[date | None] = mapped_column(Date)

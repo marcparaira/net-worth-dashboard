@@ -1,7 +1,7 @@
 import { RefreshCw } from 'lucide-react';
-import { useMemo, useState, type FormEvent } from 'react';
+import { Fragment, useMemo, useState } from 'react';
 import { apiRequest } from '../api/client';
-import type { HoldingOut, LiabilityOut, SnapshotDetail, SnapshotOut, SnapshotSummary } from '../api/types';
+import type { CategoryOut, HoldingOut, LiabilityOut, SnapshotDetail, SnapshotOut, SnapshotSummary } from '../api/types';
 import { HoldingForm, LiabilityForm } from '../components/EntryForms';
 import { Panel } from '../components/common';
 import { useApi } from '../hooks/useApi';
@@ -23,7 +23,7 @@ import { euro, signedEuro, trendClass } from '../lib/format';
 export function SnapshotFormPage({ snapshotId }: { snapshotId: string | null }) {
   const holdings = useApi<HoldingOut[]>('/holdings');
   const liabilities = useApi<LiabilityOut[]>('/liabilities');
-  const categories = useApi<string[]>('/categories');
+  const categories = useApi<CategoryOut[]>('/categories');
   const snapshots = useApi<SnapshotSummary[]>('/snapshots');
   // A new snapshot starts from the latest one; an existing one from itself.
   const sourceId = snapshotId ?? snapshots.data?.[0]?.id ?? null;
@@ -48,7 +48,7 @@ export function SnapshotFormPage({ snapshotId }: { snapshotId: string | null }) 
       previous={snapshotId ? (detail?.previous ?? null) : detail}
       holdings={holdings.data}
       liabilities={liabilities.data}
-      categories={categories.data ?? []}
+      categories={(categories.data ?? []).map((c) => c.name)}
       takenDates={snapshots.data.filter((s) => s.id !== snapshotId).map((s) => s.date)}
       onEntriesChanged={() => {
         holdings.reload();
@@ -59,7 +59,8 @@ export function SnapshotFormPage({ snapshotId }: { snapshotId: string | null }) 
   );
 }
 
-type Adding = 'holding' | 'liability' | null;
+/** The holding or liability whose form is open; `id` null when adding a new one. */
+type Editing = { kind: 'holding' | 'liability'; id: string | null } | null;
 
 function SnapshotEditor({
   snapshot,
@@ -80,9 +81,10 @@ function SnapshotEditor({
   takenDates: string[];
   onEntriesChanged: () => void;
 }) {
+  const [showClosed, setShowClosed] = useState(false);
   const groups = useMemo(
-    () => buildGroups(holdings, liabilities, previous?.values, snapshot?.values),
-    [holdings, liabilities, previous, snapshot],
+    () => buildGroups(holdings, liabilities, previous?.values, snapshot?.values, showClosed),
+    [holdings, liabilities, previous, snapshot, showClosed],
   );
   // A new snapshot is pre-filled with the latest values, so only what changed needs typing.
   const [initial] = useState(() => initialTexts(groups, snapshot ? snapshot.values : previous?.values));
@@ -91,15 +93,17 @@ function SnapshotEditor({
   const [submitted, setSubmitted] = useState(false);
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState('');
-  const [adding, setAdding] = useState<Adding>(null);
+  const [editing, setEditing] = useState<Editing>(null);
 
   const errors = validateSnapshot(date, takenDates, groups, texts);
   const amountOf = (row: EntryRow) => parseAmount(texts[row.key] ?? '').amount;
   const previousTotal = previous ? netWorth(groups, (row) => row.previous) : null;
   const total = netWorth(groups, amountOf);
 
-  const submit = (event: FormEvent) => {
-    event.preventDefault();
+  const closedCount = [...holdings, ...liabilities].filter((item) => item.closed_on).length;
+
+  // Not a <form> submit: holding and liability forms open inside this page, and forms cannot nest.
+  const submit = () => {
     setSubmitted(true);
     if (hasErrors(errors)) return;
     setSaving(true);
@@ -114,13 +118,35 @@ function SnapshotEditor({
       .finally(() => setSaving(false));
   };
 
-  const entryAdded = () => {
-    setAdding(null);
+  const entryChanged = () => {
+    setEditing(null);
     onEntriesChanged();
   };
 
+  const entryForm = (open: NonNullable<Editing>) =>
+    open.kind === 'holding' ? (
+      <HoldingForm
+        key={open.id ?? 'new'}
+        holding={holdings.find((h) => h.id === open.id) ?? null}
+        categories={categories}
+        onSaved={entryChanged}
+        onDeleted={entryChanged}
+        onCancel={() => setEditing(null)}
+      />
+    ) : (
+      <LiabilityForm
+        key={open.id ?? 'new'}
+        liability={liabilities.find((l) => l.id === open.id) ?? null}
+        holdings={holdings}
+        liabilities={liabilities}
+        onSaved={entryChanged}
+        onDeleted={entryChanged}
+        onCancel={() => setEditing(null)}
+      />
+    );
+
   return (
-    <form onSubmit={submit} noValidate>
+    <div>
       <header className="page-header">
         <h1>{snapshot ? `Snapshot of ${snapshot.date}` : 'New snapshot'}</h1>
         <p>{previous ? `Compared with ${previous.date}` : 'Your first snapshot'}</p>
@@ -148,38 +174,25 @@ function SnapshotEditor({
         </label>
       </Panel>
 
-      {adding ? (
-        <Panel title={adding === 'holding' ? 'New holding' : 'New liability'}>
-          {adding === 'holding' ? (
-            <HoldingForm
-              holding={null}
-              categories={categories}
-              onSaved={entryAdded}
-              onDeleted={entryAdded}
-              onCancel={() => setAdding(null)}
-            />
-          ) : (
-            <LiabilityForm
-              liability={null}
-              holdings={holdings}
-              liabilities={liabilities}
-              onSaved={entryAdded}
-              onDeleted={entryAdded}
-              onCancel={() => setAdding(null)}
-            />
-          )}
-        </Panel>
+      {editing && editing.id === null ? (
+        <Panel title={editing.kind === 'holding' ? 'New holding' : 'New liability'}>{entryForm(editing)}</Panel>
       ) : null}
 
       <Panel
         title="Values"
-        description="Leave a field empty for anything not held on this date."
+        description="Leave a field empty for anything not held on this date. Edit a holding to rename it, change its category, or close it."
         actions={
           <span className="list-actions">
-            <button type="button" className="button" onClick={() => setAdding('holding')}>
+            {closedCount ? (
+              <label className="field-check hint">
+                <input type="checkbox" checked={showClosed} onChange={(e) => setShowClosed(e.target.checked)} />
+                Show closed ({closedCount})
+              </label>
+            ) : null}
+            <button type="button" className="button" onClick={() => setEditing({ kind: 'holding', id: null })}>
               Add holding
             </button>
-            <button type="button" className="button" onClick={() => setAdding('liability')}>
+            <button type="button" className="button" onClick={() => setEditing({ kind: 'liability', id: null })}>
               Add liability
             </button>
           </span>
@@ -203,30 +216,50 @@ function SnapshotEditor({
                   const change = amount !== null && row.previous !== null ? amount - row.previous : null;
                   const changed = (texts[row.key] ?? '') !== (initial[row.key] ?? '');
                   const error = errors.amounts[row.key];
+                  const open = editing?.kind === row.kind && editing.id === row.id;
                   return (
-                    <div
-                      key={row.key}
-                      className={`entry-row ${changed ? 'is-changed' : ''} ${row.propertyKey ? 'is-mortgage' : ''}`}
-                    >
-                      <span className="holding-main">
-                        <strong>{row.name}</strong>
-                        <small>{row.label}</small>
-                      </span>
-                      <span className="hint">{row.previous === null ? '—' : euro.format(row.previous)}</span>
-                      <span className="entry-input">
-                        <input
-                          className="input amount"
-                          inputMode="decimal"
-                          autoComplete="off"
-                          aria-label={`${row.name} value`}
-                          aria-invalid={Boolean(error)}
-                          value={texts[row.key] ?? ''}
-                          onChange={(e) => setTexts({ ...texts, [row.key]: e.target.value })}
-                        />
-                        {error ? <span className="field-error">{error}</span> : null}
-                      </span>
-                      <span className="hint">{change ? signedEuro.format(change) : ''}</span>
-                    </div>
+                    <Fragment key={row.key}>
+                      <div
+                        className={`entry-row ${changed ? 'is-changed' : ''} ${row.propertyKey ? 'is-mortgage' : ''}`}
+                      >
+                        <span className="holding-main">
+                          <strong>{row.name}</strong>
+                          <small>
+                            {row.label}
+                            {row.closed ? ' · Closed' : ''} ·{' '}
+                            <button
+                              type="button"
+                              className="link-button"
+                              aria-expanded={open}
+                              aria-label={`Edit ${row.name}`}
+                              onClick={() => setEditing(open ? null : { kind: row.kind, id: row.id })}
+                            >
+                              Edit
+                            </button>
+                          </small>
+                        </span>
+                        <span className="hint">{row.previous === null ? '—' : euro.format(row.previous)}</span>
+                        <span className="entry-input">
+                          <input
+                            className="input amount"
+                            inputMode="decimal"
+                            autoComplete="off"
+                            aria-label={`${row.name} value`}
+                            aria-invalid={Boolean(error)}
+                            value={texts[row.key] ?? ''}
+                            onChange={(e) => setTexts({ ...texts, [row.key]: e.target.value })}
+                          />
+                          {error ? <span className="field-error">{error}</span> : null}
+                        </span>
+                        <span className="hint">{change ? signedEuro.format(change) : ''}</span>
+                      </div>
+                      {open ? (
+                        <div className="entry-editor">
+                          <p className="hint">Changes apply to {row.name} in every snapshot.</p>
+                          {entryForm({ kind: row.kind, id: row.id })}
+                        </div>
+                      ) : null}
+                    </Fragment>
                   );
                 })}
               </div>
@@ -254,10 +287,10 @@ function SnapshotEditor({
         <a className="button" href="#snapshots">
           Cancel
         </a>
-        <button type="submit" className="button primary" disabled={saving}>
+        <button type="button" className="button primary" disabled={saving} onClick={submit}>
           {saving ? 'Saving…' : snapshot ? 'Save changes' : 'Save snapshot'}
         </button>
       </div>
-    </form>
+    </div>
   );
 }
