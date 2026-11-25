@@ -1,0 +1,56 @@
+{
+  "excluded_categories": [
+    "Pensions",
+    "Vehicles"
+  ],
+  "fill_order": [
+    "Emergency fund",
+    "Short-term bonds",
+    "Home down payment"
+  ],
+  "reserves": [
+    {
+      "name": "Emergency fund",
+      "amount": 6000,
+      "categories": [
+        "Efectiu i bons CT"
+      ]
+    },
+    {
+      "name": "Home down payment",
+      "amount": 4000,
+      "categories": [
+        "Efectiu i bons CT"
+      ]
+    }
+  ],
+  "buckets": [
+    {
+      "name": "Real estate",
+      "weight": 40,
+      "holding_ids": [
+        "sample-flat"
+      ]
+    },
+    {
+      "name": "Stocks and cash",
+      "weight": 60,
+      "children": [
+        {
+          "name": "Index funds",
+          "weight": 80,
+          "categories": [
+            "Accions"
+          ]
+        },
+        {
+          "name": "Short-term bonds",
+          "weight": 20,
+          "categories": [
+            "Efectiu i bons CT"
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -12,15 +12,14 @@
 
 ## Phase 1 — Repository Privacy
 
-Personal financial data is currently committed. Remove it before the
-repository is published anywhere.
+Keep personal financial data out of the repository and its history.
 
-- [ ] Move `backend/records/`, `backend/rebalancing.json`, and other personal notes to a local data directory outside version control.
-- [ ] Make the data directory configurable through an environment variable.
-- [ ] Add the data directory and `.env` files to `.gitignore`.
-- [ ] Create a fictitious sample dataset and point tests and the default configuration at it.
-- [ ] Remove personal data from the git history (rewrite it with `git filter-repo`, or start a new history) before adding a remote.
-- [ ] Add secret and personal-data scanning (for example gitleaks) as a pre-commit hook and in CI.
+- [x] Move `backend/records/`, `backend/rebalancing.json`, and other personal notes to a local data directory outside version control.
+- [x] Make the data directory configurable through an environment variable (`NET_WORTH_DATA_DIR`).
+- [x] Add `.env` files and the old data locations to `.gitignore`.
+- [x] Create a fictitious sample dataset (`sample-data/`) and point tests and the default configuration at it.
+- [x] Remove personal data from the git history with `git filter-repo` before adding a remote.
+- [x] Add secret and personal-data scanning with gitleaks as a pre-commit hook and in CI.
 
 **Deliverable:** Repository that can be made public without exposing personal data.
 

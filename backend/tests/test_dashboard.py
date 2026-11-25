@@ -7,11 +7,11 @@ from fastapi.routing import APIRoute
 from pydantic import ValidationError
 
 from backend.app import app
-from backend.config import RECORDS_DIR
-from backend.dashboard import build_dashboard, calculate_payload
+from backend.config import SAMPLE_DATA_DIR
+from backend.dashboard import build_dashboard
 from backend.ledger import process_records
 from backend.models import Record
-from backend.rebalancing import RebalancingConfig, build_rebalancing, calculate_rebalancing
+from backend.rebalancing import RebalancingConfig, build_rebalancing, load_config
 from backend.records import load_records
 from backend.timeseries import monthly_summary, subtract_months
 
@@ -184,18 +184,25 @@ class RebalancingTests(unittest.TestCase):
                 {'name': 'A', 'weight': 1, 'holding_ids': ['x']}, {'name': 'B', 'weight': 1, 'holding_ids': ['x']}]})
 
 
-class IntegrationTests(unittest.TestCase):
-    def test_saved_records_produce_the_dashboard(self):
-        records = load_records()
-        self.assertEqual(len(records), len(list(RECORDS_DIR.glob('*.y*ml'))))
-        dashboard = calculate_payload()
+SAMPLE_RECORDS_DIR = SAMPLE_DATA_DIR / 'records'
+
+
+class SampleDataTests(unittest.TestCase):
+    """The committed sample dataset loads and drives every endpoint."""
+
+    def test_sample_records_produce_the_dashboard(self):
+        records = load_records(SAMPLE_RECORDS_DIR)
+        self.assertEqual(len(records), len(list(SAMPLE_RECORDS_DIR.glob('*.y*ml'))))
+        dashboard = build_dashboard(records)
         self.assertEqual(dashboard['meta']['latest_date'], max(r.date for r in records).isoformat())
         self.assertEqual(len(dashboard['history']), len(records))
+        self.assertIsNotNone(dashboard['summary']['one_year_change'])
         self.assertNotIn('cashflows', dashboard)
 
-    def test_saved_config_produces_the_rebalancing(self):
-        result = calculate_rebalancing()
-        self.assertEqual(result['latest_date'], calculate_payload()['meta']['latest_date'])
+    def test_sample_config_produces_the_rebalancing(self):
+        records = load_records(SAMPLE_RECORDS_DIR)
+        result = build_rebalancing(records, load_config(SAMPLE_DATA_DIR / 'rebalancing.json'))
+        self.assertEqual(result['latest_date'], build_dashboard(records)['meta']['latest_date'])
         self.assertAlmostEqual(sum(b['gap'] for b in result['buckets']),
                                -sum(h['amount'] for h in result['unassigned']), places=0)
 

@@ -1,0 +1,23 @@
+# gitleaks configuration: default secret rules plus personal financial data.
+title = "net-worth-dashboard"
+
+[extend]
+useDefault = true
+
+[[rules]]
+id = "personal-data-file"
+description = "Financial records or rebalancing settings outside sample-data/ (keep them in NET_WORTH_DATA_DIR)"
+path = '''(?:^|/)(?:records/[^/]+\.ya?ml|rebalancing\.json)$'''
+[[rules.allowlists]]
+paths = ['''(?:^|/)sample-data/''']
+
+[[rules]]
+id = "spanish-iban"
+description = "Spanish bank account number (IBAN)"
+regex = '''\bES\d{2}(?:[ -]?\d{4}){5}\b'''
+keywords = ["es"]
+
+[[rules]]
+id = "spanish-cadastral-reference"
+description = "Spanish cadastral reference (identifies a property)"
+regex = '''\b\d{7}[A-Z]{2}\d{4}[A-Z]\d{4}[A-Z]{2}\b'''

@@ -1,0 +1,37 @@
+date: '2025-04-30'
+assets:
+  liquid:
+  - name: Current account (sample)
+    id: sample-current-account
+    value: 5090
+    category: Efectiu i bons CT
+  - name: Savings account (sample)
+    id: sample-savings-account
+    value: 10260
+    category: Efectiu i bons CT
+  non_liquid:
+  - name: Pension plan (sample)
+    id: sample-pension-plan
+    value: 21780
+    category: Pensions
+  - name: Flat (sample)
+    id: sample-flat
+    value: 185000
+    category: Immobles
+    mortgage:
+      name: Mortgage (sample)
+      id: sample-mortgage
+      value: 125816
+  - name: Car (sample)
+    id: sample-car
+    value: 13240
+    category: Vehicles
+  - name: Broker (sample)
+    id: sample-broker
+    value: 16550
+    category: Accions
+liabilities:
+  non_liquid:
+  - name: Credit card (sample)
+    id: sample-credit-card
+    value: 620

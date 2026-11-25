@@ -3,6 +3,15 @@ set -euo pipefail
 
 ROOT_DIR=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
 
+# Load local settings, such as NET_WORTH_DATA_DIR, from .env if present.
+if [[ -f "$ROOT_DIR/.env" ]]; then
+    set -a
+    # shellcheck source=/dev/null
+    source "$ROOT_DIR/.env"
+    set +a
+fi
+echo "Data directory: ${NET_WORTH_DATA_DIR:-$ROOT_DIR/sample-data (sample data)}"
+
 for command in node npm; do
     if ! command -v "$command" >/dev/null 2>&1; then
         echo "$command is required. Install Node.js and npm first." >&2

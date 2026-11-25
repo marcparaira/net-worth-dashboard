@@ -23,7 +23,7 @@ export function RebalancingPage() {
   return <>
     <header className="hero">
       <h1>Rebalancing</h1>
-      <p>As of {data.latest_date} · targets from backend/rebalancing.json</p>
+      <p>As of {data.latest_date} · targets from rebalancing.json in the data directory</p>
     </header>
 
     <div className="summary-cards rebalance-summary">
