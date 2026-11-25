@@ -97,7 +97,21 @@ On the host, the API connects to `localhost:$DB_PORT`; set `DATABASE_URL` to use
 - `GET /api/rebalancing`: target allocation of the latest snapshot, from the
   rebalancing settings imported from `rebalancing.json` (see below).
 
-Both return 404 with an explanation when nothing has been imported yet.
+Both return 404 with an explanation when there are no snapshots yet.
+
+Data entry, used by the Snapshots and Holdings pages. Amounts are exact, with at most
+two decimals and never negative (debts are liabilities); errors come back as
+`{"detail": "..."}` with 404, 409 (conflict, such as a duplicate date), or 422 (invalid).
+
+- `GET /api/snapshots`, `POST /api/snapshots`: list (newest first, with net worth and
+  change) and create.
+- `GET|PUT|DELETE /api/snapshots/{id}`: one snapshot with the previous one for
+  comparison; replace its date and values; delete it.
+- `GET|POST /api/holdings`, `PUT|DELETE /api/holdings/{id}`: holdings with their latest
+  value; rename, recategorise, close. Only holdings without history can be deleted.
+- `GET|POST /api/liabilities`, `PUT|DELETE /api/liabilities/{id}`: liabilities; set
+  `holding_id` to make one the mortgage of a property.
+- `GET /api/categories`: category names.
 
 ## Rebalancing
 
@@ -193,6 +207,8 @@ Backend (`backend/`):
 - `repository.py`: database reads, scoped to a user, rebuilding the analytics models
 - `importer.py`: `python -m backend.importer`, YAML records into the database
 - `migrate.py`: `python -m backend.migrate`, waits for the database and applies migrations
+- `entries.py`, `entry_routes.py`: data entry (holdings, liabilities, snapshots): rules and API routes
+- `deps.py`: request dependencies (database session, current user)
 - `ledger.py`: per-record totals (`Totals`, `Snapshot`) and per-holding rows
 - `timeseries.py`: month arithmetic, monthly interpolation, small numeric helpers
 - `dashboard.py`: builds each section of the API payload
@@ -203,8 +219,10 @@ Frontend (`frontend/src/`, TypeScript):
 
 - `App.tsx`: page layout
 - `api/types.ts`: API payload types, kept in sync with `backend/schemas.py`
-- `hooks/useApi.ts`, `hooks/useDashboard.ts`: fetch the API payloads
+- `api/client.ts`, `hooks/useApi.ts`: API requests, with readable errors and reload
+- `hooks/useHashRoute.ts`: routes in the URL hash (`#snapshots/new`)
+- `lib/entries.ts`: snapshot form logic: amount parsing, rows, validation (with tests)
 - `lib/derive.ts`, `lib/rebalancing.ts`: pure functions that turn payloads into chart data (with tests)
 - `lib/format.ts`, `lib/theme.ts`, `lib/constants.ts`: formatters, colours, shared chart props, category names
 - `components/`: one component per panel, plus shared pieces in `common.tsx`
-- `pages/`: Dashboard and Rebalancing pages
+- `pages/`: Dashboard, Rebalancing, Snapshots (list and form), and Holdings pages

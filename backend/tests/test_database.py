@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-from collections.abc import Iterator
 from decimal import Decimal
 
 import pytest
@@ -13,10 +12,8 @@ from sqlalchemy import Engine, select, text
 from sqlalchemy.orm import Session
 
 from backend import repository
-from backend.app import app
 from backend.config import SAMPLE_DATA_DIR
 from backend.dashboard import build_dashboard
-from backend.db import get_session
 from backend.db_models import Base, Category, SnapshotValue
 from backend.importer import DataImportError, import_data
 from backend.models import Record
@@ -103,18 +100,6 @@ def test_users_only_see_their_own_data(db_session: Session, sample: tuple[list[R
     assert len(repository.load_records(db_session, alice.id)) == len(records)
     assert len(repository.load_records(db_session, bob.id)) == 2
     assert repository.load_rebalancing_config(db_session, bob.id) is None
-
-
-@pytest.fixture
-def client(db_session: Session) -> Iterator[TestClient]:
-    def session_override() -> Iterator[Session]:
-        yield db_session
-
-    app.dependency_overrides[get_session] = session_override
-    try:
-        yield TestClient(app)
-    finally:
-        app.dependency_overrides.clear()
 
 
 def test_api_serves_the_imported_data(

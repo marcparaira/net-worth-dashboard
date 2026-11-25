@@ -11,11 +11,14 @@ import os
 from collections.abc import Iterator
 
 import pytest
+from fastapi.testclient import TestClient
 from sqlalchemy import Engine, create_engine, make_url, text
 from sqlalchemy.orm import Session
 from sqlalchemy.pool import NullPool
 
 from backend import migrate
+from backend.app import app
+from backend.db import get_session
 
 TEST_DATABASE_URL = os.environ.get("TEST_DATABASE_URL")
 
@@ -72,3 +75,17 @@ def db_session(db_engine: Engine) -> Iterator[Session]:
         finally:
             session.close()
             transaction.rollback()
+
+
+@pytest.fixture
+def client(db_session: Session) -> Iterator[TestClient]:
+    """The API, using the test session (so everything it writes is rolled back)."""
+
+    def session_override() -> Iterator[Session]:
+        yield db_session
+
+    app.dependency_overrides[get_session] = session_override
+    try:
+        yield TestClient(app)
+    finally:
+        app.dependency_overrides.clear()

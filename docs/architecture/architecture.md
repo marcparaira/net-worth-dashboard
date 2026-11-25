@@ -40,10 +40,10 @@ flowchart LR
 
     DB -->|read| A_REPO
     A_REPO --> A_ANALYTICS
-    P_DATA -.-> A_CMD
+    P_DATA --> A_CMD
     P_SET -.-> A_CMD
-    A_CMD -.-> A_REPO
-    A_REPO -.->|write| DB
+    A_CMD --> A_REPO
+    A_REPO -->|write| DB
 
     FILES --> CLI
     CLI --> DB
@@ -57,8 +57,8 @@ flowchart LR
     classDef done fill:#dcfce7,stroke:#16a34a,stroke-width:2px,color:#166534
     classDef planned fill:#f8fafc,stroke:#94a3b8,stroke-width:2px,stroke-dasharray:5 4,color:#64748b
     classDef storage fill:#fce7f3,stroke:#db2777,stroke-width:2px,color:#831843
-    class A_ANALYTICS,A_QUERY,A_REPO,CLI,P_DASH,P_REB done
-    class A_CMD,A_AUTH,P_DATA,P_SET,JOBS,IDP,EMAIL planned
+    class A_ANALYTICS,A_QUERY,A_REPO,A_CMD,CLI,P_DASH,P_REB,P_DATA done
+    class A_AUTH,P_SET,JOBS,IDP,EMAIL planned
     class FILES,DB storage
 
     style API fill:#faf5ff,stroke:#a855f7,stroke-width:2px,color:#581c87
@@ -115,13 +115,13 @@ The whole deployment is planned. All infrastructure is defined in AWS CDK.
 
 | Component | Responsibilities | Reads | Writes | Status |
 |---|---|---|---|---|
-| **Web App** | Display dashboard and rebalancing; enter snapshots and holdings; edit settings; sign in | API Server, Cognito | API Server | ✅ Dashboard, rebalancing · 🔲 Data entry, settings, sign-in |
+| **Web App** | Display dashboard and rebalancing; enter snapshots and holdings; edit settings; sign in | API Server, Cognito | API Server | ✅ Dashboard, rebalancing, snapshots, holdings · 🔲 Settings, sign-in |
 | **Query routes** | Build the dashboard and rebalancing payloads | Analytics | — | ✅ Implemented |
-| **Write routes** | Create, update, and delete user data; import; export; delete account | Repository | Repository | 🔲 Planned |
+| **Write routes** | Create, update, and delete user data; import; export; delete account | Repository | Repository | ✅ Snapshots, holdings, liabilities · 🔲 Settings, export, account |
 | **Auth** | Validate tokens and resolve the current user for every route | Cognito signing keys | — | 🔲 Planned |
 | **Analytics** | Pure functions over validated models: totals, interpolation, history, allocation, rebalancing | Records and settings from the repository | — | ✅ Implemented |
 | **YAML loader** | Read and validate records and `rebalancing.json` for the import command | YAML files | — | ✅ Import only |
-| **Repository layer** | All database access; every query takes the user ID; rebuilds the analytics models | PostgreSQL | PostgreSQL | ✅ Reads · 🔲 Writes (Phase 6) |
+| **Repository layer** | All database access; every query takes the user ID; rebuilds the analytics models | PostgreSQL | PostgreSQL | ✅ Implemented |
 | **Import command** | `python -m backend.importer`: load YAML records and rebalancing settings in one transaction | YAML files | PostgreSQL | ✅ Implemented |
 | **Scheduled jobs** | Send revaluation reminders | PostgreSQL | Email | 🔲 Planned |
 
@@ -133,10 +133,10 @@ The whole deployment is planned. All infrastructure is defined in AWS CDK.
 | `/api/dashboard` | GET | Summary, history, allocation, holdings, movement | ✅ Implemented |
 | `/api/rebalancing` | GET | Rebalancing result for the latest snapshot | ✅ Implemented |
 | `/api/rebalancing/settings` | GET, PUT | Read and replace the rebalancing settings (buckets, reserves, exclusions, fill order) in one transaction | 🔲 Planned |
-| `/api/snapshots` | GET, POST, PUT, DELETE | Dated snapshots with holding and liability values | 🔲 Planned |
-| `/api/holdings` | GET, POST, PUT | Holdings and their linked mortgages | 🔲 Planned |
-| `/api/liabilities` | GET, POST, PUT | Standalone liabilities | 🔲 Planned |
-| `/api/categories` | GET, POST, PUT | Categories and disposable-value exclusions | 🔲 Planned |
+| `/api/snapshots`, `/api/snapshots/{id}` | GET, POST, PUT, DELETE | Dated snapshots with holding and liability values; one snapshot includes the previous one for comparison | ✅ Implemented |
+| `/api/holdings`, `/api/holdings/{id}` | GET, POST, PUT, DELETE | Holdings with their latest value; delete only without history (otherwise close) | ✅ Implemented |
+| `/api/liabilities`, `/api/liabilities/{id}` | GET, POST, PUT, DELETE | Liabilities; linked to a property, a liability is its mortgage | ✅ Implemented |
+| `/api/categories` | GET | Category names (created when a holding uses a new one) | ✅ Read · 🔲 Edit (Phase 7) |
 | `/api/import`, `/api/export` | POST, GET | YAML/CSV import; JSON/CSV export | 🔲 Planned |
 | `/api/account` | GET, DELETE | Preferences; account deletion | 🔲 Planned |
 

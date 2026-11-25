@@ -253,7 +253,21 @@ class SampleDataTests(unittest.TestCase):
 
     def test_api_routes(self):
         paths = {route.path for route in app.routes if isinstance(route, APIRoute)}
-        self.assertEqual(paths, {'/api/dashboard', '/api/rebalancing', '/api/health'})
+        self.assertEqual(
+            paths,
+            {
+                '/api/dashboard',
+                '/api/rebalancing',
+                '/api/health',
+                '/api/categories',
+                '/api/holdings',
+                '/api/holdings/{holding_id}',
+                '/api/liabilities',
+                '/api/liabilities/{liability_id}',
+                '/api/snapshots',
+                '/api/snapshots/{snapshot_id}',
+            },
+        )
 
     def test_health_reports_the_version(self):
         self.assertEqual(health(), {'status': 'ok', 'version': APP_VERSION})

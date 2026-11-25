@@ -76,11 +76,11 @@ The current styling looks generic. Define a design system before new pages are b
 
 ## Phase 6 — Data Entry from the UI
 
-- [ ] Add API endpoints to create, update, and delete snapshots, holdings, and liabilities.
-- [ ] Add a "New snapshot" form, pre-filled from the latest snapshot.
-- [ ] Let users add, rename, recategorize, and close holdings, and link mortgages to properties.
-- [ ] Validate input on client and server, with clear error messages.
-- [ ] Add a snapshot list with edit and delete actions.
+- [x] Add API endpoints to create, update, and delete snapshots, holdings, and liabilities.
+- [x] Add a "New snapshot" form, pre-filled from the latest snapshot.
+- [x] Let users add, rename, recategorize, and close holdings, and link mortgages to properties.
+- [x] Validate input on client and server, with clear error messages.
+- [x] Add a snapshot list with edit and delete actions.
 
 **Deliverable:** All financial data managed from the UI, with no file editing.
 
@@ -109,6 +109,7 @@ The current styling looks generic. Define a design system before new pages are b
 - [ ] Let users choose the language from the user menu (remembered per user, and per browser before signing in); default to the browser language. Category and holding names are user data and are not translated.
 - [ ] Make the snapshot form and dashboard usable on mobile.
 - [ ] Add revaluation reminders for rarely updated holdings, such as properties.
+- [ ] Add a holding detail page with its value history, and sparklines in the holding list.
 - [ ] Add an empty-state onboarding flow for new users, with optional demo data.
 
 **Deliverable:** First complete MVP, usable by people other than the author.

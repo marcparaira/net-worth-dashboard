@@ -121,3 +121,73 @@ export interface RebalancingPayload {
   excluded: RebalancingHolding[];
   unassigned: RebalancingHolding[];
 }
+
+// Data entry: /api/holdings, /api/liabilities, /api/snapshots, /api/categories
+
+export type Liquidity = 'liquid' | 'non_liquid';
+
+export interface HoldingOut {
+  id: string;
+  name: string;
+  category: string;
+  liquidity: Liquidity;
+  closed_on: string | null;
+  mortgage_id: string | null;
+  latest_amount: number | null;
+  latest_date: string | null;
+  value_count: number;
+  in_rebalancing: boolean;
+}
+
+export interface HoldingIn {
+  name: string;
+  category: string;
+  liquidity: Liquidity;
+  closed_on: string | null;
+}
+
+export interface LiabilityOut {
+  id: string;
+  name: string;
+  /** The property this liability finances (a mortgage), if any. */
+  holding_id: string | null;
+  closed_on: string | null;
+  latest_amount: number | null;
+  latest_date: string | null;
+  value_count: number;
+}
+
+export interface LiabilityIn {
+  name: string;
+  holding_id: string | null;
+  closed_on: string | null;
+}
+
+export interface SnapshotValue {
+  holding_id: string | null;
+  liability_id: string | null;
+  amount: number;
+}
+
+export interface SnapshotOut {
+  id: string;
+  date: string;
+  values: SnapshotValue[];
+}
+
+export interface SnapshotDetail extends SnapshotOut {
+  previous: SnapshotOut | null;
+}
+
+export interface SnapshotIn {
+  date: string;
+  values: SnapshotValue[];
+}
+
+export interface SnapshotSummary {
+  id: string;
+  date: string;
+  net_worth: number;
+  change: number | null;
+  value_count: number;
+}

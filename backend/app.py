@@ -2,17 +2,16 @@
 
 from __future__ import annotations
 
-from typing import Annotated
-
-from fastapi import Depends, FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from sqlalchemy.orm import Session
+from sqlalchemy.exc import IntegrityError
 
 from . import repository
 from .config import APP_VERSION, CORS_ORIGINS, RateBasis
 from .dashboard import build_dashboard
-from .db import get_session
-from .db_models import User
+from .deps import SessionDep, UserDep
+from .entries import EntryError
+from .entry_routes import entry_error_response, integrity_error_response, router
 from .rebalancing import build_rebalancing
 from .schemas import DashboardPayload, Health, RebalancingPayload
 
@@ -24,20 +23,11 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+app.include_router(router)
+app.add_exception_handler(EntryError, entry_error_response)
+app.add_exception_handler(IntegrityError, integrity_error_response)
 
-SessionDep = Annotated[Session, Depends(get_session)]
-NO_DATA = "No snapshots yet. Import your records with: python -m backend.importer <data directory>"
-
-
-def current_user(session: SessionDep) -> User:
-    """The signed-in user; until accounts exist (Phase 8), the single local user."""
-    user = repository.find_user(session)
-    if user is None:
-        raise HTTPException(status_code=404, detail=NO_DATA)
-    return user
-
-
-UserDep = Annotated[User, Depends(current_user)]
+NO_DATA = "No snapshots yet. Add one from the Snapshots page, or import records with: python -m backend.importer"
 
 
 @app.get("/api/dashboard")

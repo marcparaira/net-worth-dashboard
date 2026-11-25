@@ -14,7 +14,7 @@ import { categoryAllocation, categoryHistory, investmentMix, totalAssetEquity, y
 
 export function DashboardPage() {
   const [basis, setBasis] = useState<RateBasis>('last_year');
-  const { data, loading, error } = useDashboard(basis);
+  const { data, loading, error, status } = useDashboard(basis);
 
   const categories = useMemo(() => categoryAllocation(data?.allocation), [data]);
   const mix = useMemo(() => investmentMix(categories), [categories]);
@@ -26,6 +26,21 @@ export function DashboardPage() {
     return (
       <div className="center">
         <RefreshCw className="spin" /> Loading dashboard…
+      </div>
+    );
+  if (status === 404)
+    return (
+      <div className="panel empty-state">
+        <h1>Welcome</h1>
+        <p>Start by adding what you own and owe, then record what each is worth today.</p>
+        <div className="form-actions">
+          <a className="button" href="#holdings">
+            Add holdings
+          </a>
+          <a className="button primary" href="#snapshots/new">
+            Record a snapshot
+          </a>
+        </div>
       </div>
     );
   if (error) return <div className="center">{error}</div>;
