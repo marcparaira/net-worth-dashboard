@@ -1,7 +1,7 @@
 # Local development environment: `podman compose up --build`.
 #   Web app:    http://localhost:5173 (Vite dev server, hot reload)
 #   API:        http://localhost:8000 (uvicorn --reload)
-#   PostgreSQL: localhost:5432 (used from Phase 3)
+#   PostgreSQL: localhost:5432 (used from Phase 5)
 # Settings come from .env (see .env.example): NET_WORTH_DATA_DIR (default sample-data/)
 # and WEB_PORT, API_PORT, DB_PORT to change the host ports. Ports bind to localhost only.
 name: net-worth-dashboard

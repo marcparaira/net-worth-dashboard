@@ -28,12 +28,14 @@ evaluations. System architecture is documented separately.
 | Database | PostgreSQL 17 (same major version locally and in production) | Selected |
 | ORM and Migrations | SQLAlchemy, Alembic | Selected |
 | Authentication | Amazon Cognito (or a self-hosted alternative for local development) | Proposed |
-| Internationalization | i18next | Proposed |
+| Internationalization | i18next (Catalan, English) | Proposed |
 | Backend Tests | pytest (running the existing unittest tests) | Selected |
 | Frontend Tests | Vitest, React Testing Library | Selected |
 | Linting and Formatting | Ruff, basedpyright, ESLint (typescript-eslint), Prettier | Selected |
 | Secret Scanning | gitleaks | Selected |
 | CI | GitHub Actions | Selected |
+| Release Automation | semantic-release (or release-please), Conventional Commits | Proposed |
+| Container Registry | GitHub Container Registry | Proposed |
 | Containerization | Podman, Podman Compose | Selected |
 | Cloud Provider | Amazon Web Services (AWS) | Selected |
 | Infrastructure as Code | AWS CDK (TypeScript) | Proposed |

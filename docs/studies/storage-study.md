@@ -33,7 +33,7 @@ engine as close to production as possible.
 | SR-04 | Support history queries across snapshots and holdings. | FR-02, FR-04 |
 | SR-05 | Encrypt at rest and in transit. | NFR-04 |
 | SR-06 | Provide automated backups and point-in-time recovery. | NFR-05 |
-| SR-07 | Support versioned schema changes. | Phase 3 |
+| SR-07 | Support versioned schema changes. | Roadmap Phase 5 |
 | SR-08 | Run locally in Podman Compose with an engine that behaves like production. | NFR-12 |
 | SR-09 | Minimize cost at small scale and low, irregular usage. | NFR-11 |
 | SR-10 | Require little operational effort. | — |

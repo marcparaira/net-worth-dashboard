@@ -22,14 +22,14 @@ in [the requirements](../requirements.md).
 |---|---|---|---|
 | `/` | Dashboard | FR-01–FR-04 | ✅ Existing |
 | `/rebalancing` | Rebalancing | FR-05 | ✅ Existing |
-| `/snapshots` | Snapshot list | FR-07 | 4 |
-| `/snapshots/new`, `/snapshots/:date` | Snapshot form | FR-06, FR-07, FR-12 | 4 |
-| `/holdings` | Holding list | FR-08, FR-09 | 4 |
-| `/holdings/:id` | Holding detail | FR-08, FR-09 | 4 |
-| `/settings/categories` | Categories | FR-10 | 5 |
-| `/settings/rebalancing` | Rebalancing targets | FR-11 | 5 |
-| `/settings/account` | Account and data | FR-14–FR-16 | 6 |
-| `/sign-in`, `/sign-up`, `/reset-password` | Authentication | FR-13 | 6 |
+| `/snapshots` | Snapshot list | FR-07 | 6 |
+| `/snapshots/new`, `/snapshots/:date` | Snapshot form | FR-06, FR-07, FR-12 | 6 |
+| `/holdings` | Holding list | FR-08, FR-09 | 6 |
+| `/holdings/:id` | Holding detail | FR-08, FR-09 | 6 |
+| `/settings/categories` | Categories | FR-10 | 7 |
+| `/settings/rebalancing` | Rebalancing targets | FR-11 | 7 |
+| `/settings/account` | Account and data | FR-14–FR-16 | 8 |
+| `/sign-in`, `/sign-up`, `/reset-password` | Authentication | FR-13 | 8 |
 
 ## 3. App Shell
 

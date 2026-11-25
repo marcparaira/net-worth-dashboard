@@ -34,7 +34,34 @@ Keep personal financial data out of the repository and its history.
 
 **Deliverable:** One-command local environment with healthy services.
 
-## Phase 3 — Database Storage
+## Phase 3 — Release Process
+
+Every pull request merged into `main` produces a versioned release.
+
+- [ ] Protect `main`: changes arrive only through pull requests with passing CI; `development` is the integration branch.
+- [ ] Require Conventional Commit pull request titles (`feat:`, `fix:`, `docs:`, …), checked in CI, and squash-merge so each pull request becomes one commit on `main`.
+- [ ] On every merge to `main`, derive the next semantic version from the pull request title, tag it, and publish a GitHub Release with notes grouped by type (for example with semantic-release, which releases on each merge, rather than release-please, which batches changes in a release pull request).
+- [ ] Attach release artifacts: the frontend build, and the API image pushed to GitHub Container Registry with the version tag.
+- [ ] Show the running version in the app and in `/api/health`.
+- [ ] Document the branching and release process.
+
+**Deliverable:** Automatic, versioned releases with notes for every merged pull request.
+
+## Phase 4 — Visual Design
+
+The current styling looks generic. Define a design system before new pages are built on it.
+
+- [ ] Define design tokens as CSS custom properties: a colour palette (neutrals, one accent, and semantic colours for gains, losses, and warnings), typography scale, spacing, radii, and shadows.
+- [ ] Choose a colour-blind-safe chart palette, with one consistent colour per category across all charts.
+- [ ] Support light and dark themes, following the system setting.
+- [ ] Restyle the Dashboard and Rebalancing pages with the tokens: calm surfaces, clear hierarchy, and fewer decorative effects (gradients, glows, coloured edge bars, uppercase labels).
+- [ ] Present numbers consistently: tabular figures, right-aligned amounts, and one convention for signs and colours of changes.
+- [ ] Check WCAG AA contrast and visible keyboard focus.
+- [ ] Document the design system in `docs/design/visual-design.md`, with before and after screenshots.
+
+**Deliverable:** A consistent, professional visual identity, applied to the existing pages and ready for the new ones.
+
+## Phase 5 — Database Storage
 
 **Data flow:** UI → FastAPI → PostgreSQL → Analytics → Dashboard
 
@@ -47,7 +74,7 @@ Keep personal financial data out of the repository and its history.
 
 **Deliverable:** Dashboard and rebalancing served from the database, with identical results to the YAML and JSON version.
 
-## Phase 4 — Data Entry from the UI
+## Phase 6 — Data Entry from the UI
 
 - [ ] Add API endpoints to create, update, and delete snapshots, holdings, and liabilities.
 - [ ] Add a "New snapshot" form, pre-filled from the latest snapshot.
@@ -57,7 +84,7 @@ Keep personal financial data out of the repository and its history.
 
 **Deliverable:** All financial data managed from the UI, with no file editing.
 
-## Phase 5 — Rebalancing Settings
+## Phase 7 — Rebalancing Settings
 
 - [ ] Add API endpoints to read and replace the rebalancing settings in one transaction, with validation.
 - [ ] Add an editor for buckets, weights, reserves, excluded categories, and fill order.
@@ -66,7 +93,7 @@ Keep personal financial data out of the repository and its history.
 
 **Deliverable:** Rebalancing fully configurable from the UI.
 
-## Phase 6 — Accounts and Multi-User
+## Phase 8 — Accounts and Multi-User
 
 - [ ] Add sign-up, sign-in, sign-out, and password reset.
 - [ ] Protect all API endpoints and scope every query to the signed-in user.
@@ -76,16 +103,17 @@ Keep personal financial data out of the repository and its history.
 
 **Deliverable:** Multiple users with isolated, exportable, and deletable data.
 
-## Phase 7 — Usability and Localization
+## Phase 9 — Usability and Localization
 
-- [ ] Translate the UI into Catalan, Spanish, and English, with locale-aware formats.
+- [ ] Translate the UI into Catalan and English, with all text in translation files and locale-aware number, currency, and date formats.
+- [ ] Let users choose the language from the user menu (remembered per user, and per browser before signing in); default to the browser language. Category and holding names are user data and are not translated.
 - [ ] Make the snapshot form and dashboard usable on mobile.
 - [ ] Add revaluation reminders for rarely updated holdings, such as properties.
 - [ ] Add an empty-state onboarding flow for new users, with optional demo data.
 
 **Deliverable:** First complete MVP, usable by people other than the author.
 
-## Phase 8 — AWS Deployment
+## Phase 10 — AWS Deployment
 
 - [ ] Provision infrastructure using AWS CDK.
 - [ ] Deploy the API to Lambda behind an API Gateway HTTP API, in private subnets without a NAT gateway, using IAM database authentication.

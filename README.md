@@ -46,7 +46,7 @@ podman compose up --build   # add -d to run in the background
 |---|---|---|
 | Web app | http://localhost:5173 | Vite dev server, hot reload |
 | API | http://localhost:8000 | uvicorn with `--reload`; data mounted read-only at `/data` |
-| PostgreSQL | localhost:5432 | Used from Phase 3; user, password and database: `networth` |
+| PostgreSQL | localhost:5432 | Used from Phase 5; user, password and database: `networth` |
 
 Ports bind to localhost only; change them with `WEB_PORT`, `API_PORT` and `DB_PORT` in
 `.env`. Other useful commands:

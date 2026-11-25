@@ -25,8 +25,8 @@ network), not CPU-bound.
 
 | ID | Requirement | Source |
 |---|---|---|
-| LR-01 | Reuse the existing analytics and tests, keeping results identical. | Roadmap Phase 3 |
-| LR-02 | Deliver the roadmap's CRUD, forms, import/export, and auth features quickly. | Roadmap Phases 3–7 |
+| LR-01 | Reuse the existing analytics and tests, keeping results identical. | Roadmap Phase 5 |
+| LR-02 | Deliver the roadmap's CRUD, forms, import/export, and auth features quickly. | Roadmap Phases 5–9 |
 | LR-03 | Compute money exactly and catch type errors early. | NFR-06 |
 | LR-04 | Provide mature libraries for PostgreSQL, migrations, JWT/Cognito auth, and OpenAPI generation for the TypeScript client. | Technology stack |
 | LR-05 | Load the dashboard in under two seconds. | NFR-08 |

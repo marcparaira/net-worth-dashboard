@@ -73,11 +73,13 @@ Shared households, advisors, and bank integrations are out of scope for now.
 | NFR-07 | Auditability | Record when snapshots and settings were created and last changed. |
 | NFR-08 | Performance | Load the dashboard in under two seconds for a user with several years of monthly snapshots. |
 | NFR-09 | Usability | Make entering a monthly snapshot quick, on desktop and mobile. |
-| NFR-10 | Localization | Support at least Catalan, Spanish, and English, with locale-aware number, currency, and date formats. |
+| NFR-10 | Localization | Support Catalan and English, selectable by the user, with locale-aware number, currency, and date formats. |
 | NFR-11 | Cost | Keep the hosting cost appropriate for a small user base, scaling with use. |
 | NFR-12 | Reproducible Environments | Run development, CI, and production from the same container images or build artifacts. |
 | NFR-13 | Observability | Collect logs, metrics, and error reports without recording financial values or personal data. |
 | NFR-14 | Compliance | Handle personal data according to GDPR, including data export (FR-15) and erasure (FR-16). |
+| NFR-15 | Visual Design | Apply a documented design system (palette, typography, spacing) consistently across pages, in light and dark themes. |
+| NFR-16 | Release Management | Publish a versioned release, with release notes, for every pull request merged into `main`. |
 
 ## 5. Data
 
