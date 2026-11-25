@@ -38,7 +38,7 @@ Keep personal financial data out of the repository and its history.
 
 Every pull request merged into `main` produces a versioned release.
 
-- [ ] Protect `main`: changes arrive only through pull requests from short-lived branches, with passing checks.
+- [x] Protect `main`: changes arrive only through pull requests from short-lived branches, with passing checks.
 - [x] Require Conventional Commit pull request titles (`feat:`, `fix:`, `docs:`, …), checked in CI, and squash-merge so each pull request becomes one commit on `main`.
 - [x] On every merge to `main`, derive the next semantic version from the pull request title, tag it, and publish a GitHub Release with notes grouped by type (semantic-release; every type releases, `feat` as minor and the rest as patch).
 - [x] Attach release artifacts: the frontend build, and the API image pushed to GitHub Container Registry with the version tag.
